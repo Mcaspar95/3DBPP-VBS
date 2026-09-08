@@ -316,6 +316,10 @@ def generate_all_classes(
 
     print(f"Generated instances in: {output_dir}")
 
-generate_all_classes(
-    output_directory="martello"
-)
+# Guarded so that this module can be imported (e.g. by custom_instances.py,
+# which reuses MartelloRandom and write_instance) without regenerating the
+# instances as a side effect.
+if __name__ == "__main__":
+    generate_all_classes(
+        output_directory="Martello"
+    )

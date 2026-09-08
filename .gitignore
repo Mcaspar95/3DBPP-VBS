@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+
+# Distribution / packaging
+*.egg-info/
+
+# Gurobi
+*.log
+gurobi.lic
+
+# Results / plots produced by the solver
+*.png
+results*.csv
+
+# macOS
+.DS_Store
