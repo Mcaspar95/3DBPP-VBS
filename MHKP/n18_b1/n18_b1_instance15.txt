@@ -1,0 +1,25 @@
+# MHKP instance for submodel V0 of Deplano et al. (2019)
+# BINS:  length width height priority
+# ITEMS: length width height
+# beta (gcd of item sides) = 1
+BINS
+120 120 120 5.78703703704e-07
+ITEMS
+47 57 64
+49 63 50
+30 29 23
+49 67 60
+49 60 50
+42 39 23
+44 63 47
+23 37 29
+58 47 45
+25 20 23
+56 71 72
+56 52 68
+51 62 61
+35 30 36
+34 41 31
+43 43 43
+58 47 55
+67 48 50
