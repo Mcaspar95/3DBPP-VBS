@@ -1,0 +1,121 @@
+% =====================================================================
+% Beam search for the MHKP under submodel V0.
+% Companion to the simulated annealing listing (alg:sa3d).
+% Requires: algorithm, algpseudocode, amssymb (for \varnothing).
+% =====================================================================
+
+\begin{algorithm}
+\caption{Beam Search for the MHKP}
+\label{alg:bs3d}
+\small
+\setlength{\baselineskip}{10pt}
+\begin{algorithmic}[1]
+
+\Procedure{BeamSearch}{$w, m, T^{\max}$}
+
+    \State $N_0 \gets$ empty packing
+      \Comment{One maximal space per bin, all items free}
+    \State $(P^\star, f^\star) \gets \text{FCH}(N_0)$
+      \Comment{Greedy rollout, see Algorithm \ref{alg:fch3d}}
+    \State $\mathcal{W} \gets \{N_0\}$
+      \Comment{Beam of the current level}
+
+    \While{$\mathcal{W} \neq \varnothing$ \textbf{and} elapsed time $\le T^{\max}$}
+
+        \State $\mathcal{C} \gets \varnothing$
+
+        \ForAll{$N \in \mathcal{W}$}
+            \ForAll{$a \in$ \Call{Expand}{$N, m$}}
+              \Comment{At most $m$ actions $(j,s,i,o)$}
+                \State $N' \gets N$ with action $a$ applied
+                \State $(P', f') \gets \text{FCH}(N')$
+                  \Comment{Score the node by completing it}
+                \If{$f' > f^\star$}
+                    \State $(P^\star, f^\star) \gets (P', f')$
+                      \Comment{Better solution is found}
+                \EndIf
+                \State $\mathcal{C} \gets \mathcal{C} \cup \{(N', f')\}$
+            \EndFor
+        \EndFor
+
+        \State $\mathcal{W} \gets$ the $w$ nodes of $\mathcal{C}$ with largest $f'$
+          \Comment{Prune to the beam width}
+
+    \EndWhile
+
+    \State \textbf{return} $(P^\star, f^\star)$
+
+\EndProcedure
+
+\Statex
+
+\Procedure{Expand}{$N, m$}
+    \Comment{Actions from the first space that admits any}
+
+    \ForAll{bin $j$ by non-increasing priority $p_j$}
+        \ForAll{space $s \in \mathcal{S}_j$ in DBL order}
+            \State $\mathcal{B}' \gets$ items that fit $s$ in some rotation
+              \Comment{No overlap, and stable}
+            \If{$\mathcal{B}' \neq \varnothing$}
+                \State $\mathcal{B}'' \gets \lfloor m/|O| \rfloor$ items drawn from
+                       $\mathcal{B}'$ by volume-weighted roulette
+                \State \textbf{return} $\{(j,s,i,o) : i \in \mathcal{B}'',\,
+                       o \in O \text{ feasible}\}$
+            \EndIf
+        \EndFor
+    \EndFor
+
+    \State \textbf{return} $\varnothing$
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+% ---------------------------------------------------------------------
+
+\begin{algorithm}
+\caption{Fast constructive heuristic (\textsc{FCH})}
+\label{alg:fch3d}
+\small
+\setlength{\baselineskip}{10pt}
+\begin{algorithmic}[1]
+
+\Procedure{FCH}{$N$}
+    \Comment{Complete a partial packing greedily}
+
+    \State $N' \gets$ copy of $N$
+      \Comment{The rollout must not disturb the node it scores}
+
+    \ForAll{bin $j$ by non-increasing priority $p_j$}
+        \Repeat
+            \State Among the spaces $s \in \mathcal{S}'_j$ in DBL order, take the
+                   first that admits an item, and in it the largest such item
+                   $i$ with the first feasible rotation $o$
+            \If{such $(s,i,o)$ exists}
+                \State Place $i$, remove it from the free items
+                \State $\mathcal{S}'_j \gets$ \Call{SplitSpaces}{$\mathcal{S}'_j, i$}
+            \EndIf
+        \Until{no placement is possible in bin $j$}
+    \EndFor
+
+    \State $f \gets \left. \sum_{j} p_j\, v_j(N') \middle/ \sum_{j} p_j V_j \right.$
+      \Comment{Normalised complement of objective (1)}
+    \State \textbf{return} $(N', f)$
+
+\EndProcedure
+
+\Statex
+
+\Procedure{SplitSpaces}{$\mathcal{S}_j, i$}
+    \Comment{Maximal spaces, Parre\~{n}o et al. (2008)}
+
+    \State Replace every $s \in \mathcal{S}_j$ that item $i$ intrudes on by the
+           residual slabs of $s$ on either side of $i$ along each axis
+      \Comment{Each slab keeps the full extent of $s$ on the other two axes,
+               so the slabs overlap}
+    \State \textbf{return} $\mathcal{S}_j$ without the spaces contained in
+           another space
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}

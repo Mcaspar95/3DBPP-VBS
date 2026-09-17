@@ -1,0 +1,241 @@
+% =====================================================================
+% Beam search for the MHKP under submodel V0.
+% Companion to the simulated annealing listing (alg:sa3d).
+% Requires: algorithm, algorithmicx / algpseudocode.
+% =====================================================================
+
+\begin{algorithm}
+\caption{Beam Search for the MHKP}
+\label{alg:bs3d}
+\small
+\setlength{\baselineskip}{10pt}
+\begin{algorithmic}[1]
+
+\Procedure{BeamSearch}{$w, m, T^{\max}$}
+
+    \State $\kappa \gets$ bins sorted by non-increasing priority $p_j$
+      \Comment{$p_j = 1/V_j$: small bins first}
+    \State $\mathcal{S}_j \gets \{(0,0,0,W_j,H_j,L_j)\}$ for all $j$
+      \Comment{One maximal space per empty bin}
+    \State $\mathcal{B} \gets I$ \Comment{All items unplaced}
+    \State $N_0 \gets (\mathcal{S}, \varnothing, \mathcal{B})$
+      \Comment{Root node: the empty partial packing}
+
+    \State $(P^\star, f^\star) \gets \text{FCH}(N_0)$
+      \Comment{see Algorithm \ref{alg:fch3d}}
+    \State $\mathcal{W} \gets \{N_0\}$, \quad $T \gets 0$
+
+    \While{$\mathcal{W} \neq \varnothing$ \textbf{and} elapsed time $T \le T^{\max}$}
+
+        \State $\mathcal{C} \gets \varnothing$ \Comment{Candidate nodes of this level}
+
+        \ForAll{$N \in \mathcal{W}$}
+
+            \If{elapsed time $T > T^{\max}$}
+                \State \textbf{break}
+            \EndIf
+
+            \State $\mathcal{A} \gets$ \Call{Expand}{$N, m$}
+              \Comment{see Algorithm \ref{alg:expand3d}}
+
+            \ForAll{$a = (j, s, i, o) \in \mathcal{A}$}
+
+                \State $N' \gets N$ with item $i$ placed in space $s$ of bin $j$
+                       in rotation $o$
+                \State $\mathcal{S}'_j \gets$ \Call{SplitSpaces}{$\mathcal{S}_j, i, o$}
+                  \Comment{Maximal-space partition}
+
+                \State $(P', f') \gets \text{FCH}(N')$
+                  \Comment{Greedy rollout scores the whole subtree}
+                \State $g(N') \gets f'$
+
+                \If{$f' > f^\star$} \Comment{Better complete solution is found}
+                    \State $P^\star \gets P'$, \quad $f^\star \gets f'$
+                \EndIf
+
+                \State $\mathcal{C} \gets \mathcal{C} \cup \{N'\}$
+
+            \EndFor
+
+        \EndFor
+
+        \If{$\mathcal{C} = \varnothing$} \Comment{No node admits a placement}
+            \State \textbf{break}
+        \EndIf
+
+        \State Sort $\mathcal{C}$ by non-increasing $g(\cdot)$
+        \State $\mathcal{W} \gets$ the first $\min(w, |\mathcal{C}|)$ nodes of $\mathcal{C}$
+          \Comment{Beam of width $w$}
+
+    \EndWhile
+
+    \State \textbf{return} $(P^\star, f^\star)$
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+% ---------------------------------------------------------------------
+
+\begin{algorithm}
+\caption{Node expansion (\textsc{Expand})}
+\label{alg:expand3d}
+\small
+\setlength{\baselineskip}{10pt}
+\begin{algorithmic}[1]
+
+\Procedure{Expand}{$N, m$}
+
+    \State $\mathcal{A} \gets \varnothing$
+
+    \ForAll{$j \in \kappa$} \Comment{Bins in priority order}
+
+        \State Sort $\mathcal{S}_j$ by DBL
+          \Comment{Ascending $y$, then $z$, then $x$}
+
+        \ForAll{$s \in \mathcal{S}_j$}
+
+            \State $\mathcal{B}' \gets \{\, i \in \mathcal{B} \mid
+                   \exists\, o : \textsc{CanPlace}(N, j, s, i, o) \,\}$
+
+            \If{$\mathcal{B}' = \varnothing$}
+                \State \textbf{continue} \Comment{Try the next space}
+            \EndIf
+
+            \State $\mathcal{B}'' \gets$ at most $\lfloor m/|O| \rfloor$ items drawn
+                   from $\mathcal{B}'$ by volume-weighted roulette
+
+            \ForAll{$i \in \mathcal{B}''$, $o \in O$}
+                \If{\textsc{CanPlace}$(N, j, s, i, o)$}
+                    \State $\mathcal{A} \gets \mathcal{A} \cup \{(j, s, i, o)\}$
+                    \If{$|\mathcal{A}| \ge m$}
+                        \State \textbf{return} $\mathcal{A}$
+                    \EndIf
+                \EndIf
+            \EndFor
+
+            \If{$\mathcal{A} \neq \varnothing$}
+                \State \textbf{return} $\mathcal{A}$
+                  \Comment{Commit to the first productive space}
+            \EndIf
+
+        \EndFor
+
+    \EndFor
+
+    \State \textbf{return} $\mathcal{A}$
+
+\EndProcedure
+
+\Statex
+
+\Procedure{CanPlace}{$N, j, s, i, o$}
+    \Comment{Item $i$ at the DBL corner of space $s$}
+
+    \State $(d_x,d_y,d_z) \gets$ edge lengths of item $i$ in rotation $o$
+    \State $(x,y,z) \gets$ bottom--left--back corner of $s$
+
+    \If{$d_x > s_{d_x}$ \textbf{or} $d_y > s_{d_y}$ \textbf{or} $d_z > s_{d_z}$}
+        \State \textbf{return} \textsc{false} \Comment{Does not fit the space}
+    \EndIf
+
+    \If{item $i$ overlaps any item already placed in bin $j$}
+        \State \textbf{return} \textsc{false} \Comment{Constraints (9a)--(9e)}
+    \EndIf
+
+    \If{\textbf{not} \textsc{IsSupported}$(x,y,z,d_x,d_z,N_j)$}
+        \State \textbf{return} \textsc{false} \Comment{Stability, (10a)--(10r)}
+    \EndIf
+
+    \State \textbf{return} \textsc{true}
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
+
+
+% ---------------------------------------------------------------------
+
+\begin{algorithm}
+\caption{Fast constructive heuristic (\textsc{FCH})}
+\label{alg:fch3d}
+\small
+\setlength{\baselineskip}{10pt}
+\begin{algorithmic}[1]
+
+\Procedure{FCH}{$N$}
+    \Comment{Complete a partial packing greedily}
+
+    \State $N' \gets$ copy of $N$
+      \Comment{The rollout must not disturb the node it scores}
+
+    \ForAll{$j \in \kappa$} \Comment{Bins in priority order}
+
+        \Repeat
+
+            \State Sort $\mathcal{S}'_j$ by DBL
+            \State $(s^\ast, i^\ast, o^\ast) \gets \varnothing$
+
+            \ForAll{$s \in \mathcal{S}'_j$ \textbf{while} $s^\ast = \varnothing$}
+                \ForAll{$i \in \mathcal{B}'$ in non-increasing volume
+                         \textbf{while} $s^\ast = \varnothing$}
+                    \ForAll{$o \in O$ \textbf{while} $s^\ast = \varnothing$}
+                        \If{\textsc{CanPlace}$(N', j, s, i, o)$}
+                            \State $(s^\ast, i^\ast, o^\ast) \gets (s, i, o)$
+                              \Comment{First fit: largest item, deepest space}
+                        \EndIf
+                    \EndFor
+                \EndFor
+            \EndFor
+
+            \If{$s^\ast \neq \varnothing$}
+                \State Place $i^\ast$ in $s^\ast$ with rotation $o^\ast$
+                \State $\mathcal{B}' \gets \mathcal{B}' \setminus \{i^\ast\}$
+                \State $\mathcal{S}'_j \gets$
+                       \Call{SplitSpaces}{$\mathcal{S}'_j, i^\ast, o^\ast$}
+            \EndIf
+
+        \Until{$s^\ast = \varnothing$}
+          \Comment{Bin $j$ admits nothing further}
+
+    \EndFor
+
+    \State $f \gets \dfrac{\sum_{j \in J} p_j \cdot v_j(N')}
+                          {\sum_{j \in J} p_j \cdot V_j}$
+      \Comment{Normalised complement of objective (1)}
+
+    \State \textbf{return} $(N', f)$
+
+\EndProcedure
+
+\Statex
+
+\Procedure{SplitSpaces}{$\mathcal{S}_j, i, o$}
+    \Comment{Maximal-space partition, Parre\~{n}o et al. (2008)}
+    % The general rule keeps the residual slab on BOTH sides of the box along
+    % each axis, hence up to six. Xu et al. (2026) describe three, which is the
+    % special case of a box seated at the origin corner of the space, where the
+    % three near-side slabs are empty. Placement here is always at the DBL
+    % corner of a space, so in practice at most three survive; the general form
+    % is kept because a space may be split by a box placed in an overlapping
+    % space, for which the near sides are not empty.
+
+    \State $\mathcal{S}' \gets \varnothing$
+
+    \ForAll{$s \in \mathcal{S}_j$}
+        \If{item $i$ does not intersect $s$}
+            \State $\mathcal{S}' \gets \mathcal{S}' \cup \{s\}$
+        \Else
+            \State $\mathcal{S}' \gets \mathcal{S}' \cup
+                   \{\text{the up to six residual slabs of } s\}$
+              \Comment{Overlapping; each runs to a face of $s$}
+        \EndIf
+    \EndFor
+
+    \State \textbf{return} $\{\, s \in \mathcal{S}' \mid
+           s \text{ is not contained in another } s' \in \mathcal{S}' \,\}$
+
+\EndProcedure
+\end{algorithmic}
+\end{algorithm}
