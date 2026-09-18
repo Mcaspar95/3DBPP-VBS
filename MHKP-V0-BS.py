@@ -345,9 +345,15 @@ def fch(state, inst, rule=None):
     exactly as the BSA's FCH does, until nothing more can be placed. The state
     is copied first, so the rollout never disturbs the node it scores.
 
-    This is the expensive part - it is a full construction per candidate - but
-    unlike the SA's decode it starts from a partial packing rather than from
-    scratch, so it gets cheaper as the search goes deeper.
+    This is the expensive part: one full construction per candidate node. It
+    does NOT get cheaper as the search deepens - measured on an n=50 instance,
+    a rollout costs 1.31 ms at the root and 2.83 ms nine placements in, because
+    the free-space list and the placed-box list both grow with depth while the
+    pool of remaining items shrinks only slowly (50 -> 41). What beam search
+    gains over the SA's decode is not a cheaper evaluation but a more
+    informative one: each rollout scores a node that has one more item
+    permanently committed, so the same work buys search depth rather than
+    another sample of the same neighbourhood.
     """
 
     s = state.copy()

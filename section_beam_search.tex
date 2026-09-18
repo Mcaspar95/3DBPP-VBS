@@ -1,0 +1,174 @@
+% =====================================================================
+% Main text for the beam search section.
+% Companion to the algorithm listings alg:bs3d, alg:fch3d and the
+% notation table tab:BS.
+% =====================================================================
+
+\subsection{Beam search}
+\label{sec:bs}
+
+Simulated annealing explores the space of \emph{loading sequences}: a move
+perturbs the order in which items are offered, and the whole packing is then
+rebuilt to discover what the perturbation achieved. The decoding of a sequence
+into a packing therefore dominates the cost of an iteration, and the number of
+iterations that fit into a given time budget is governed by it. This is a
+property of the encoding rather than of the metaheuristic, so a second method
+built on the same encoding would inherit the same limit.
+
+Beam search changes the unit of work. Its states are \emph{partial packings}
+rather than complete sequences, and a transition commits one further item to
+one further space. The partial packing is extended incrementally and never
+rebuilt, and the expensive construction that scores a state is amortised over
+the entire subtree below it rather than over a single neighbour. We adopt the
+beam search framework of \citet{xu2026} and adapt it to the MHKP; the
+adaptations are described in Section~\ref{sec:bs-adapt}.
+
+Beam search is a truncated breadth-first search. At every level the frontier is
+scored by a heuristic evaluation function, and only the $w$ most promising
+nodes are retained, the remainder being discarded. A second parameter $m$ caps
+the number of children generated per node. Together, $w$ and $m$ bound the
+width of the search tree and thus prevent the exponential growth that makes
+exact tree search intractable, at the price of losing any optimality guarantee.
+The notation is summarised in Table~\ref{tab:BS}.
+
+\subsubsection{State representation and transition}
+
+A state, or node, is a triple $N = (\mathcal{S}, P, \mathcal{B})$ consisting of
+the free spaces $\mathcal{S}_j$ of every bin $j$, the items already placed, and
+the items $\mathcal{B}$ still unplaced. In the root node $N_0$ each bin
+contributes a single free space spanning its full extent
+$(0,0,0,W_j,H_j,L_j)$, and no item is placed, so $\mathcal{B} = I$.
+
+A transition is an \emph{action} $a = (j,s,i,o)$: item $i$ is placed at the
+down--back--left (DBL) corner of free space $s$ of bin $j$ in rotation $o$.
+Applying $a$ removes $i$ from $\mathcal{B}$ and re-partitions the free spaces
+of bin $j$, as described in Section~\ref{sec:bs-spaces}. Only one position per
+free space is considered, because the free-space representation already
+enumerates the distinct positions at which an item can be seated. A state is
+terminal when no bin has a free space that admits any remaining item.
+
+Free spaces are maintained as \emph{maximal spaces} \citep{parreno2008}. When
+an item is placed inside a space, that space is replaced by the residual slabs
+on either side of the item along each of the three axes, each slab retaining
+the full extent of the original space on the remaining two axes. At most six
+slabs arise per space, and because each runs to a face of the original space
+they overlap one another; any slab contained in another is discarded, which
+keeps the list bounded. Retaining overlapping spaces rather than a disjoint
+partition is deliberate: it guarantees that a later item can use the full
+residual extent along any one axis, whereas a disjoint partition would divide
+that extent arbitrarily among several smaller spaces and could reject an item
+for which room physically remains. \textsc{UpdateFreeSpaces} in
+Algorithm~\ref{alg:fch3d} states the procedure.
+\label{sec:bs-spaces}
+
+\subsubsection{Node expansion}
+
+Generating every action available in a state would be prohibitive, since it
+grows with the product of the number of free spaces, unplaced items and
+rotations. \textsc{Expand} (Algorithm~\ref{alg:bs3d}) therefore restricts the
+branching in three ways.
+
+First, bins are traversed in non-increasing order of priority $p_j = 1/V_j$,
+so that small bins are offered first. Because objective~(1) weights wasted
+space by $p_j$, filling a small bin is worth as much as filling a large one,
+and preferring small bins is what the objective rewards.
+
+Second, within a bin the free spaces are traversed in DBL order, and the
+procedure commits to the \emph{first} space that admits any item, returning
+immediately. The search thus branches over which item to place next rather
+than over where to place it. This is what keeps the branching factor
+proportional to the number of items instead of to the number of
+space--item--rotation triples, and the DBL order makes the choice a systematic
+bottom-up filling of the bin rather than an arbitrary one.
+
+Third, when the set $\mathcal{F}$ of items admissible in that space exceeds the
+budget, a subset $\mathcal{F}'$ of $k = \lfloor m/|O| \rfloor$ items is drawn
+by roulette selection with probabilities proportional to item volume,
+$v_i / \sum_{i' \in \mathcal{F} \setminus \mathcal{F}'} v_{i'}$. Large items
+are thus favoured, which reflects the fact that they are the harder ones to
+accommodate later, while the randomisation retains a positive probability of
+selecting any admissible item and so avoids the systematic blind spot of a
+purely greedy rule. Crossing $\mathcal{F}'$ with the feasible rotations yields
+at most $m$ actions, which is why the sample size is divided by $|O|$.
+
+Membership in $\mathcal{F}$ requires more than geometric containment: an item
+qualifies only if, in some rotation, it lies inside the space, overlaps no
+placed item, and is stably supported in the sense of constraints
+(10a)--(10r). Feasibility is thus enforced at expansion time, so that no
+infeasible node ever enters the beam and no repair mechanism is required.
+
+\subsubsection{Evaluation function}
+
+A partial packing cannot be compared with another directly, since the volume
+placed so far rewards nodes that are merely deeper. Each candidate node is
+therefore \emph{completed} by the fast constructive heuristic \textsc{FCH} of
+Algorithm~\ref{alg:fch3d}, and scored by the objective value of the resulting
+complete solution. The score $g(N')$ thus estimates the quality of the best
+solution reachable below $N'$, which is the quantity the beam should rank by.
+
+\textsc{FCH} operates on a copy of the node, so that scoring never disturbs the
+state it evaluates. It considers bins in priority order and, within a bin,
+repeatedly performs the first feasible placement encountered when scanning free
+spaces in DBL order and items in non-increasing volume. A bin is closed once no
+placement remains, and the heuristic terminates when every bin is closed. The
+resulting solution is scored by
+\begin{equation}
+f \;=\; \frac{\sum_{j \in J} p_j\, v_j(N')}{\sum_{j \in J} p_j\, V_j},
+\label{eq:bs-score}
+\end{equation}
+the priority-weighted fill ratio. Expression~\eqref{eq:bs-score} is a strictly
+decreasing affine transformation of objective~(1) normalised to $[0,1]$: it
+induces exactly the same ranking of solutions and the same optimum, and merely
+orients the objective so that larger values are better, as the beam requires.
+
+Because \textsc{FCH} completes every candidate, it is executed once per
+generated node and dominates the running time of the method. Its greedy,
+first-fit design is therefore deliberate: the rollout must be fast enough that
+the beam can afford one per candidate.
+
+\subsubsection{The search}
+
+\textsc{BeamSearch} (Algorithm~\ref{alg:bs3d}) assembles these components. The
+beam is initialised with the root node, and \textsc{FCH}$(N_0)$ supplies an
+incumbent solution $(P^\star, f^\star)$, so that a feasible solution is
+available from the outset and at any moment thereafter. At each level, every
+node of the beam $\mathcal{W}$ is expanded, each resulting action is applied to
+obtain a child $N'$, and $N'$ is scored by a rollout. Since each rollout yields
+a complete solution, the incumbent is updated whenever a rollout improves on
+it; the best solution returned need not therefore correspond to any node
+retained in the beam. All children of the level form the candidate set
+$\mathcal{C}$, of which the $w$ highest-scoring are retained as the next beam.
+The search terminates when the beam empties, that is when no node admits any
+further placement, or when the time limit $T^{\max}$ is reached, and returns
+the incumbent.
+
+\subsubsection{Adaptation to the MHKP}
+\label{sec:bs-adapt}
+
+The framework of \citet{xu2026} addresses a single-bin problem with deformable
+boxes, and four modifications are required here.
+
+\emph{Multiple bins with priorities.} Their objective is the volume fraction of
+one bin. Objective~(1) is the priority-weighted wasted space over several bins,
+so a state carries the free spaces of every bin, an action names the bin it
+applies to, and bins are offered in priority order.
+
+\emph{Rotations.} Submodel V0 permits rotation about the vertical axis only,
+and its items are rigid, so $|O| = 2$ rather than the eighteen
+orientation--variant combinations of the original. The roulette budget is
+$\lfloor m/2 \rfloor$ accordingly.
+
+\emph{Stability.} Constraints (10a)--(10r) have no counterpart in the original
+problem. They are verified at placement time, both during expansion and inside
+\textsc{FCH}, so that every node of the search tree is feasible by
+construction.
+
+\emph{Scoring.} Nodes are ranked by the normalised complement
+\eqref{eq:bs-score} rather than by objective~(1) directly, so that the beam's
+selection of the $w$ largest values corresponds to the $w$ best solutions.
+
+We retain the parameter values $w = 12$ and $m = 60$ obtained by
+\citet{xu2026} through grid search. The two parameters govern the same
+trade-offs here as there, width against depth and branching against rollout
+cost, so their values provide a principled starting point; Section~\ref{sec:results}
+reports a sensitivity analysis on our own instances.

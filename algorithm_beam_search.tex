@@ -1,9 +1,3 @@
-% =====================================================================
-% Beam search for the MHKP under submodel V0.
-% Companion to the simulated annealing listing (alg:sa3d).
-% Requires: algorithm, algpseudocode, amssymb (for \varnothing).
-% =====================================================================
-
 \begin{algorithm}
 \caption{Beam Search for the MHKP}
 \label{alg:bs3d}
@@ -13,23 +7,23 @@
 
 \Procedure{BeamSearch}{$w, m, T^{\max}$}
 
-    \State $N_0 \gets$ empty packing
-      \Comment{One maximal space per bin, all items free}
+    \State $N_0 \gets ((0,0,0,W_j,H_j,L_j), \emptyset, I)$ \Comment{Full space and no items packed}
     \State $(P^\star, f^\star) \gets \text{FCH}(N_0)$
-      \Comment{Greedy rollout, see Algorithm \ref{alg:fch3d}}
+      %\Comment{Greedy rollout, see Algorithm \ref{alg:fch3d}}
     \State $\mathcal{W} \gets \{N_0\}$
       \Comment{Beam of the current level}
 
     \While{$\mathcal{W} \neq \varnothing$ \textbf{and} elapsed time $\le T^{\max}$}
 
         \State $\mathcal{C} \gets \varnothing$
-
+        \Comment{Candidates of every node in $\mathcal{W}$}
         \ForAll{$N \in \mathcal{W}$}
-            \ForAll{$a \in$ \Call{Expand}{$N, m$}}
-              \Comment{At most $m$ actions $(j,s,i,o)$}
-                \State $N' \gets N$ with action $a$ applied
+            \ForAll{$(j,s,i,o) \in$ \Call{Expand}{$N, m$}} 
+                \State $N' \gets$ $N$
+                \State Place item $i$ in space $s$ of bin $j$, rotation $o$
+                \State Update $N'$
                 \State $(P', f') \gets \text{FCH}(N')$
-                  \Comment{Score the node by completing it}
+                  \Comment{Score the node}
                 \If{$f' > f^\star$}
                     \State $(P^\star, f^\star) \gets (P', f')$
                       \Comment{Better solution is found}
@@ -50,22 +44,27 @@
 \Statex
 
 \Procedure{Expand}{$N, m$}
-    \Comment{Actions from the first space that admits any}
 
     \ForAll{bin $j$ by non-increasing priority $p_j$}
         \ForAll{space $s \in \mathcal{S}_j$ in DBL order}
-            \State $\mathcal{B}' \gets$ items that fit $s$ in some rotation
-              \Comment{No overlap, and stable}
-            \If{$\mathcal{B}' \neq \varnothing$}
-                \State $\mathcal{B}'' \gets \lfloor m/|O| \rfloor$ items drawn from
-                       $\mathcal{B}'$ by volume-weighted roulette
-                \State \textbf{return} $\{(j,s,i,o) : i \in \mathcal{B}'',\,
-                       o \in O \text{ feasible}\}$
+        \State $\mathcal{F} \gets$ unplaced items of $N$ that fit in $s$ in some $o$
+            \If{$\mathcal{F} \neq \varnothing$}
+                \State $\mathcal{F}' \gets \varnothing$,
+                       \quad $k \gets \lfloor m/|O| \rfloor$
+                  \Comment{Sample $k$ items}
+                \While{$|\mathcal{F}'| < k$ \textbf{and}
+                       $\mathcal{F} \setminus \mathcal{F}' \neq \varnothing$}
+                    \State Draw $i \in \mathcal{F} \setminus \mathcal{F}'$ with
+                           probability $\dfrac{v_i}
+                           {\sum_{i' \in \mathcal{F} \setminus \mathcal{F}'} v_{i'}}$
+                    \State $\mathcal{F}' \gets \mathcal{F}' \cup \{i\}$
+                \EndWhile
+                \State \textbf{return} $\{(j,s,i,o) : i \in \mathcal{F}',\, o \in O \text{ feasible}\}$
             \EndIf
         \EndFor
     \EndFor
 
-    \State \textbf{return} $\varnothing$
+    \State \textbf{return} $\varnothing$ \Comment{No bin has a space that admits any remaining item}
 
 \EndProcedure
 \end{algorithmic}
@@ -82,40 +81,95 @@
 \begin{algorithmic}[1]
 
 \Procedure{FCH}{$N$}
-    \Comment{Complete a partial packing greedily}
+    \Comment{Greedily complete $N$}
 
-    \State $N' \gets$ copy of $N$
-      \Comment{The rollout must not disturb the node it scores}
+    \State $N' \gets$ $N$
+    \State $\mathcal{B}' \gets$ items not yet placed in $N'$
 
     \ForAll{bin $j$ by non-increasing priority $p_j$}
-        \Repeat
-            \State Among the spaces $s \in \mathcal{S}'_j$ in DBL order, take the
-                   first that admits an item, and in it the largest such item
-                   $i$ with the first feasible rotation $o$
-            \If{such $(s,i,o)$ exists}
-                \State Place $i$, remove it from the free items
-                \State $\mathcal{S}'_j \gets$ \Call{SplitSpaces}{$\mathcal{S}'_j, i$}
+      \Comment{Small bins first}
+
+        \While{\textsc{true}}
+            \State $\mathcal{S}'_j \gets$ spaces of bin $j$, sorted by DBL
+              \Comment{Lowest $y$, then $z$, then $x$}
+            \State $(s^\ast, i^\ast, o^\ast) \gets \varnothing$
+              \Comment{Best placement found so far}
+
+            \ForAll{$s \in \mathcal{S}'_j$ \textbf{while} $s^\ast = \varnothing$}
+                \ForAll{$i \in \mathcal{B}'$ by non-increasing volume
+                        \textbf{while} $s^\ast = \varnothing$}
+                    \ForAll{$o \in O$ \textbf{while} $s^\ast = \varnothing$}
+                        \If{\textsc{Fits}$(N', j, s, i, o)$}
+                            \State $(s^\ast, i^\ast, o^\ast) \gets (s, i, o)$
+                        \EndIf
+                    \EndFor
+                \EndFor
+            \EndFor
+
+            \If{$s^\ast = \varnothing$}
+                \State \textbf{break} \Comment{Bin $j$ is closed}
             \EndIf
-        \Until{no placement is possible in bin $j$}
+
+            \State Place item $i^\ast$ at the DBL corner of $s^\ast$
+                   in rotation $o^\ast$
+            \State $\mathcal{B}' \gets \mathcal{B}' \setminus \{i^\ast\}$
+            \State $\mathcal{S}_j \gets$ \Call{UpdateFreeSpaces}{$\mathcal{S}'_j, i^\ast$}
+        \EndWhile
+
     \EndFor
 
-    \State $f \gets \left. \sum_{j} p_j\, v_j(N') \middle/ \sum_{j} p_j V_j \right.$
-      \Comment{Normalised complement of objective (1)}
+    \State $f \gets \dfrac{\sum_{j \in J} p_j\, v_j(N')}
+                          {\sum_{j \in J} p_j\, V_j}$
+      \Comment{Objective value}
+
     \State \textbf{return} $(N', f)$
 
 \EndProcedure
 
+% \Statex
+
+% \Procedure{Fits}{$N, j, s, i, o$}
+%     \Comment{One candidate placement}
+
+%     \State \textbf{return} item $i$ in rotation $o$ lies inside $s$, overlaps no
+%            placed item, \Statex \hspace{\algorithmicindent}
+%            and is supported by the bin floor or by items beneath it
+%       \Comment{(9a)--(10r)}
+
+% \EndProcedure
+
 \Statex
 
-\Procedure{SplitSpaces}{$\mathcal{S}_j, i$}
-    \Comment{Maximal spaces, Parre\~{n}o et al. (2008)}
+\Procedure{UpdateFreeSpaces}{$\mathcal{S}_j, i$}
+    \Comment{See Parre\~{n}o et al. (2008)}
 
-    \State Replace every $s \in \mathcal{S}_j$ that item $i$ intrudes on by the
-           residual slabs of $s$ on either side of $i$ along each axis
-      \Comment{Each slab keeps the full extent of $s$ on the other two axes,
-               so the slabs overlap}
-    \State \textbf{return} $\mathcal{S}_j$ without the spaces contained in
-           another space
+    \State $\mathcal{S}'' \gets \varnothing$ \Comment{New maximal free space of bin $j$}
+
+    \ForAll{$s \in \mathcal{S}_j$}
+        \If{$i$ does not intersect $s$}
+            \State $\mathcal{S}'' \gets \mathcal{S}'' \cup \{s\}$
+              \Comment{Untouched space is kept as is}
+        \Else
+            \ForAll{axis $a \in \{x,y,z\}$}
+                \ForAll{side $d$ of $i$ along $a$ that lies inside $s$}
+                    \State $\mathrm{slab} \gets$ the part of $s$ on side $d$
+                           of $i$ along axis $a$
+                    \State $\mathcal{S}'' \gets \mathcal{S}'' \cup \{\mathrm{slab}\}$
+                \EndFor
+            \EndFor
+              \Comment{Up to six slabs per $s$}
+        \EndIf
+    \EndFor
+
+    \ForAll{$s \in \mathcal{S}''$}
+        \If{$s$ is contained in some other $s' \in \mathcal{S}''$}
+            \State $\mathcal{S}'' \gets \mathcal{S}'' \setminus \{s\}$
+              \Comment{Discard $s$ so the list stays bounded}
+        \EndIf
+    \EndFor
+
+    \State \textbf{return} $\mathcal{S}''$
+
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
