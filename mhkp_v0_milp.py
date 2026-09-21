@@ -309,8 +309,11 @@ def build_model(bins, items, beta=1, time_limit=9.0, threads=None,
         for c in range(4):
             model.addConstr(pi[i, i, c] == 0, name=f"c10r_p_{i}_{c}")
 
+    # S is exposed because V2's load bearing needs it: (13g) must charge an
+    # item only for weight in its OWN bin, and S[i,k] is already the
+    # "same bin" indicator built for (10p).
     return model, {"C": C, "Z": Z, "phi": phi, "x": x, "y": y, "z": z,
-                   "xp": xp, "yp": yp, "zp": zp, "beta": beta}
+                   "xp": xp, "yp": yp, "zp": zp, "S": S, "beta": beta}
 
 
 def solve(bins, items, beta=None, time_limit=9.0, threads=None,

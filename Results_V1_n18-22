@@ -1,0 +1,27 @@
+Submodel V1 (constraints (1)-(12n): stability + centre of mass), n = 18-22.
+150 runs: 5 sizes x 10 instances x 3 solvers. Objective (1), lower is better.
+All returned packings verified feasible, including the CoM pyramid (0 violations).
+
+MILP (Gurobi) and BS (beam search) run under a 3s time limit.
+WFBF is NOT time limited: it is a single deterministic pass, and its runtime is measured, not budgeted.
+WFBF below runs in "corner" mode (candidates restricted to the origin and corner points opened by
+placed items), not the paper's literal Algorithm 1 (every beta-grid position). On these instances
+beta=1, so literal enumeration is ~1.7M positions/item/rotation and takes several seconds per
+instance instead of sub-millisecond - see Results_WFBF_grid_vs_corner_n18-22 for the direct
+comparison (both modes, same instances). corner mode is faster AND gives a BETTER objective here,
+so the WFBF numbers below are not disadvantaged by the approximation; only the WFBF TIME column
+should not be read as comparable to the paper's own WFBF timings.
+All three see the same derived weights and CoMs (seed=1, alpha=0.8), so the objectives are comparable.
+MILP is 0/10 optimal at every size: it reaches TIME_LIMIT with ~100% gap, i.e. the bound has not moved
+off zero in 3s, so the gap column measures the missing bound, not the quality of the found solution.
+
+n	MILP	MILP gap%	MILP time (s)	BS	BS packed	BS time (s)	WFBF	WFBF time (s)
+18	0.2031	99.85	3.01	0.1248	9.6	2.26	0.2537	0.0002
+19	0.2064	97.33	3.01	0.1309	10.2	2.29	0.2342	0.0002
+20	0.2455	100.00	3.01	0.1433	11.3	2.46	0.2496	0.0002
+21	0.2056	100.00	3.01	0.1199	10.3	2.65	0.2421	0.0003
+22	0.1997	100.00	3.02	0.1067	8.9	2.81	0.2053	0.0003
+mean	0.2120	99.44	3.01	0.1251	10.1	2.49	0.2370	0.0002
+
+Beam search wins every size, by 41% on average against the MILP (0.2120 -> 0.1251)
+and by 47% against WFBF (0.2370 -> 0.1251).

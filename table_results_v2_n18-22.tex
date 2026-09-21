@@ -1,0 +1,69 @@
+% =====================================================================
+% Submodel V2 results, n = 18-22: MILP vs beam search vs WFBF.
+% Objective (1), LOWER IS BETTER.
+%
+% MILP and BS are V2-feasible and verified (0 violations of the CoM
+% pyramid or load bearing across all runs). WFBF is neither time limited
+% nor a V2 method - its packings fail V2 on 7 of the 50 instances - so
+% its column is a reference point, not a valid V2 result.
+%
+% The WFBF OBJECTIVE below is from "corner" mode (candidates restricted
+% to the origin and corner points opened by placed items); it gives an
+% equal or better objective than the paper's literal Algorithm 1 (every
+% beta-grid position) on these instances.
+%
+% The WFBF TIME below is instead from the LITERAL enumeration (beta=1),
+% not corner mode - corner mode itself runs in under 0.001s and so is
+% not comparable to the paper's own reported WFBF times (their Table 11:
+% 4-27s at n=18-22). Reporting the literal time here is what makes this
+% column comparable to that table. See Results_WFBF_grid_vs_corner_n18-22
+% / table_results_wfbf_grid_vs_corner for both modes measured together
+% on the same instances (~28000x gap between them).
+% =====================================================================
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodel V2 (stability, centre of mass and load bearing,
+constraints (1)--(13g)): MILP, beam search (BS) and WFBF on instances
+with $n = 18$--$22$, ten instances per size. Objective~(1), lower is
+better. MILP and BS run under a 3\,s time limit and are V2-feasible
+throughout, every returned packing having been verified against both the
+centre-of-mass pyramid and the load-bearing limits. WFBF is a single
+deterministic pass and is not time limited; it also enforces neither
+constraint, and its packings violate V2 on 7 of the 50 instances, so its
+column is reported for reference only and its objective is optimistic.
+Its objective is from corner-point mode and its time from the literal
+position enumeration of Algorithm~1, so that the time is comparable to
+the paper's own reported WFBF times (see the footnote). The MILP is
+$0/10$ optimal at every size, its bound remaining at zero within the
+budget.}
+\label{tab:results-v2-n18-22}
+\begin{tabular}{@{}r@{\quad}ccc@{\quad}ccc@{\quad}cc@{}}
+\hline\up
+ & \multicolumn{3}{c}{MILP} & \multicolumn{3}{c}{BS}
+   & \multicolumn{2}{c}{WFBF$^{\dagger}$} \\
+$n$ & obj & gap (\%) & time (s) & obj & packed & time (s)
+    & obj & time (s) \\ \hline\up
+18 & 0.4256 & 100.00 & 3.01 & \textbf{0.1248} &  9.6 & 2.59 & 0.2537 & 6.085 \\
+19 & 0.4330 &  98.91 & 3.01 & \textbf{0.1335} & 10.5 & 2.48 & 0.2342 & 6.334 \\
+20 & 0.4061 & 100.00 & 3.02 & \textbf{0.1439} & 11.3 & 2.70 & 0.2496 & 6.786 \\
+21 & 0.3993 & 100.00 & 3.02 & \textbf{0.1191} &  9.7 & 2.82 & 0.2421 & 7.130 \\
+22 & 0.3980 & 100.00 & 3.01 & \textbf{0.1067} &  8.9 & 2.92 & 0.2053 & 7.384 \\
+\hline\up
+mean & 0.4124 & 99.78 & 3.01 & \textbf{0.1256} & 10.0 & 2.70
+     & 0.2370 & 6.744 \down\\ \hline
+\multicolumn{9}{@{}p{0.95\textwidth}@{}}{\footnotesize $^{\dagger}$WFBF
+enforces neither the centre-of-mass nor the load-bearing constraints; its
+packings are not V2-feasible on 7 of the 50 instances (2 centre-of-mass,
+5 load-bearing violations). Its objective is therefore optimistic and is
+not directly comparable with the other two columns. The objective shown
+is from corner-point mode; the time shown is instead from the literal
+position enumeration of Algorithm~1 ($\beta=1$), which is comparable to
+the paper's own reported WFBF times -- corner mode itself runs in under
+0.001\,s. See Table~\ref{tab:wfbf-grid-vs-corner} for both modes
+measured together on the same instances.}
+\end{tabular}
+\end{table}

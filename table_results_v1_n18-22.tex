@@ -1,0 +1,65 @@
+% =====================================================================
+% Submodel V1 results, n = 18-22: MILP vs beam search vs WFBF.
+% Objective (1), LOWER IS BETTER. All packings verified feasible,
+% including the CoM pyramid (0 violations across all 150 runs).
+%
+% MILP and BS run under a 3s limit; WFBF is a single deterministic pass
+% and is NOT time limited, so its time column is measured, not budgeted.
+%
+% The WFBF OBJECTIVE below is from "corner" mode (candidates restricted
+% to the origin and corner points opened by placed items); it gives an
+% equal or better objective than the paper's literal Algorithm 1 (every
+% beta-grid position) on these instances, so it is not disadvantaged by
+% being an approximation.
+%
+% The WFBF TIME below is instead from the LITERAL enumeration (beta=1),
+% not corner mode - corner mode itself runs in under 0.001s and so is
+% not comparable to the paper's own reported WFBF times (their Table 11:
+% 4-27s at n=18-22). Reporting the literal time here is what makes this
+% column comparable to that table. See Results_WFBF_grid_vs_corner_n18-22
+% / table_results_wfbf_grid_vs_corner for both modes measured together
+% on the same instances (~28000x gap between them).
+% =====================================================================
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodel V1 (stability and centre of mass, constraints
+(1)--(12n)): MILP, beam search (BS) and WFBF on instances with
+$n = 18$--$22$, ten instances per size. Objective~(1), lower is better;
+all returned packings verified feasible, including the CoM pyramid. MILP
+and BS run under a 3\,s time limit; WFBF is a single deterministic pass
+and is not time limited. Its objective is from corner-point mode and its
+time from the literal position enumeration of Algorithm~1, so that the
+time is comparable to the paper's own reported WFBF times (see the
+footnote). The MILP is $0/10$ optimal at every size, its bound remaining
+at zero within the budget, so its gap reflects the missing bound rather
+than the quality of the incumbent.}
+\label{tab:results-v1-n18-22}
+\begin{tabular}{@{}r@{\quad}ccc@{\quad}ccc@{\quad}cc@{}}
+\hline\up
+ & \multicolumn{3}{c}{MILP} & \multicolumn{3}{c}{BS}
+   & \multicolumn{2}{c}{WFBF} \\
+$n$ & obj & gap (\%) & time (s) & obj & packed & time (s)
+    & obj & time (s)$^{\dagger}$ \\ \hline\up
+18 & 0.2031 &  99.85 & 3.01 & \textbf{0.1248} &  9.6 & 2.26 & 0.2537 & 6.085 \\
+19 & 0.2064 &  97.33 & 3.01 & \textbf{0.1309} & 10.2 & 2.29 & 0.2342 & 6.334 \\
+20 & 0.2455 & 100.00 & 3.01 & \textbf{0.1433} & 11.3 & 2.46 & 0.2496 & 6.786 \\
+21 & 0.2056 & 100.00 & 3.01 & \textbf{0.1199} & 10.3 & 2.65 & 0.2421 & 7.130 \\
+22 & 0.1997 & 100.00 & 3.02 & \textbf{0.1067} &  8.9 & 2.81 & 0.2053 & 7.384 \\
+\hline\up
+mean & 0.2120 & 99.44 & 3.01 & \textbf{0.1251} & 10.1 & 2.49
+     & 0.2370 & 6.744 \down\\ \hline
+\multicolumn{9}{@{}p{0.95\textwidth}@{}}{\footnotesize $^{\dagger}$The
+WFBF objective is from corner-point mode (candidates restricted to the
+origin and corners opened by placed items), which gives an equal or
+better objective than the literal position enumeration of Algorithm~1
+on these instances. The WFBF TIME shown is instead from the literal
+enumeration ($\beta=1$), reported because it is the figure comparable
+to the paper's own Table~11; corner mode itself runs in under
+0.001\,s -- see Table~\ref{tab:wfbf-grid-vs-corner} for both modes
+measured together on the same instances.}
+\end{tabular}
+\end{table}

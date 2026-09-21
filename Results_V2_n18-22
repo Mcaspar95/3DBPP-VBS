@@ -1,0 +1,41 @@
+Submodel V2 (constraints (1)-(13g): stability + centre of mass + load bearing), n = 18-22.
+150 runs: 5 sizes x 10 instances x 3 solvers. Objective (1), lower is better.
+
+MILP (Gurobi) and BS (beam search) run under a 3s time limit; both are V2-feasible by construction
+and were verified: 0 violations of either the CoM pyramid or load bearing across all runs.
+
+WFBF is NOT time limited (single deterministic pass; runtime measured, not budgeted) AND, more
+importantly, it is NOT a V2 method: it has no CoM or load-bearing logic. Its packings were checked
+against V2 anyway and FAIL on 7 of the 50 instances (2 CoM pyramid violations, 5 load bearing),
+spread over every size. Its column is therefore a REFERENCE POINT, not a valid V2 result, and its
+objective is optimistic - it is not paying for constraints the other two must satisfy.
+
+WFBF below also runs in "corner" mode, not the paper's literal Algorithm 1 (every beta-grid
+position; beta=1 on these instances makes that intractable per-run). See
+Results_WFBF_grid_vs_corner_n18-22 for the direct grid-vs-corner comparison: corner mode is both
+faster and gives a better objective here, so only the WFBF TIME column should be treated as an
+approximation artifact, not the objective.
+
+All methods see the same derived weights, CoMs and load limits (seed=1, alpha=0.8, Lambda=3x).
+MILP is 0/10 optimal at every size: it reaches TIME_LIMIT with ~100% gap, i.e. the bound has not
+moved off zero in 3s, so the gap measures the missing bound, not the quality of the incumbent.
+
+n	MILP	MILP gap%	MILP time (s)	BS	BS packed	BS time (s)	WFBF*	WFBF time (s)
+18	0.4256	100.00	3.01	0.1248	9.6	2.59	0.2537	0.0002
+19	0.4330	98.91	3.01	0.1335	10.5	2.48	0.2342	0.0002
+20	0.4061	100.00	3.02	0.1439	11.3	2.70	0.2496	0.0002
+21	0.3993	100.00	3.02	0.1191	9.7	2.82	0.2421	0.0003
+22	0.3980	100.00	3.01	0.1067	8.9	2.92	0.2053	0.0003
+mean	0.4124	99.78	3.01	0.1256	10.0	2.70	0.2370	0.0002
+
+* WFBF packings are not V2-feasible on 7/50 instances; see the note above.
+
+Beam search wins every size: 70% better than the MILP (0.4124 -> 0.1256), and better than WFBF
+(0.2370 -> 0.1256) while additionally satisfying constraints WFBF ignores.
+
+Comparison across submodels (beam search, same instances, 3s):
+    V0  0.1174     V1  0.1251     V2  0.1256
+The CoM region costs ~6.6% wasted space; load bearing at the paper's default Lambda = 3x maximal
+weight costs almost nothing further, as it rarely binds at that capacity. Tightening Lambda makes
+it bite (factor 0.15 -> 0.2477 on n=18), so the default is generous rather than the constraint
+being inactive.

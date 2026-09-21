@@ -1,0 +1,38 @@
+% =====================================================================
+% WFBF: literal grid mode (Algorithm 1, beta=1) vs corner-point mode,
+% n = 18-22. Quantifies why WFBF's timing in the V1/V2 result tables is
+% far below the paper's own Table 11 figures: those tables use "corner"
+% mode, an extreme-point restriction of the candidate positions, since
+% literal enumeration at beta=1 is ~1.7M positions/item/rotation.
+% =====================================================================
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{WFBF under the literal grid enumeration of Algorithm~1
+($\beta = 1$) against the corner-point restriction used elsewhere in
+this paper, on the same $n = 18$--$22$ instances. This is a submodel-V0
+comparison: WFBF uses only geometry, never centre-of-mass or
+load-bearing data, so the enumeration-cost gap shown here applies
+unchanged wherever WFBF is quoted under V1 or V2. Objective~(1), lower
+is better. Grid mode is both far slower and gives a worse objective
+here: with $\beta=1$ a $120^3$ bin offers 1{,}728{,}000 candidate
+positions per item per rotation, so the literal search spends most of
+its budget scoring positions that a corner-restricted search never
+considers, without a compensating gain in solution quality.}
+\label{tab:wfbf-grid-vs-corner}
+\begin{tabular}{@{}r@{\quad}cc@{\quad}cc@{\quad}c@{}}
+\hline\up
+ & \multicolumn{2}{c}{grid ($\beta=1$)} & \multicolumn{2}{c}{corner} & \\
+$n$ & obj & time (s) & obj & time (s) & speed-up \\ \hline\up
+18 & 0.6737 & 6.085 & \textbf{0.2537} & \textbf{0.0002} & 30425$\times$ \\
+19 & 0.6678 & 6.334 & \textbf{0.2342} & \textbf{0.0002} & 31670$\times$ \\
+20 & 0.6720 & 6.786 & \textbf{0.2496} & \textbf{0.0002} & 33930$\times$ \\
+21 & 0.6629 & 7.130 & \textbf{0.2421} & \textbf{0.0003} & 23767$\times$ \\
+22 & 0.6475 & 7.384 & \textbf{0.2053} & \textbf{0.0003} & 24613$\times$ \\
+\hline\up
+mean & 0.6648 & 6.744 & \textbf{0.2370} & \textbf{0.0002} & 28099$\times$ \down\\ \hline
+\end{tabular}
+\end{table}
