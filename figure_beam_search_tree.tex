@@ -1,0 +1,125 @@
+% =====================================================================
+% Beam search tree figure.
+% Companion to alg:bs3d, sec:bs and the notation table tab:BS.
+%
+% Preamble requirements:
+%   \usepackage{tikz}
+%   \usetikzlibrary{arrows.meta,decorations.pathreplacing,patterns.meta}
+%
+% The figure is drawn with w = 2 for legibility; the experiments use
+% w = 12 and m = 60. Each node carries its rollout score g(N); at every
+% level the w largest scores are retained and the rest are pruned.
+% =====================================================================
+
+\definecolor{beamfill}{RGB}{247,190,150}
+\definecolor{beamline}{RGB}{186, 84, 20}
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+  x=1cm, y=1cm, scale=0.90, every node/.style={transform shape},
+  % --- node styles : the score is printed inside the node ---------
+  bnode/.style={circle, draw=beamline, line width=.8pt, fill=beamfill,
+                minimum size=9mm, inner sep=0pt, font=\scriptsize},
+  % For a grayscale print, replace the fill above by a hatch:
+  %   bnode/.style={circle, draw=beamline, line width=.8pt,
+  %                 pattern={Lines[angle=0,distance=2.5pt,line width=.5pt]},
+  %                 pattern color=beamline!40, minimum size=9mm,
+  %                 inner sep=0pt, font=\scriptsize},
+  pnode/.style={circle, draw=black!45, line width=.5pt, fill=white,
+                minimum size=9mm, inner sep=0pt, font=\scriptsize,
+                text=black!55},
+  % --- edge styles -----------------------------------------------
+  keep/.style={-{Stealth[length=4.5pt,width=3.4pt]}, line width=.8pt,
+               draw=black!85},
+  cut/.style={-{Stealth[length=4.5pt,width=3.4pt]}, line width=.5pt,
+              draw=black!38},
+  % --- text styles -----------------------------------------------
+  lvl/.style={anchor=west, font=\small},
+  lgd/.style={anchor=west, font=\small, inner sep=0pt},
+]
+
+% ---------- nodes : (score inside) --------------------------------
+% level 0 : root, the empty packing
+\node[bnode] (r)  at ( 6.50,  0.0) {0.74};
+% level 1 : children of the root, the two best retained
+\node[bnode] (a1) at ( 3.50, -1.9) {0.81};
+\node[pnode] (a2) at ( 6.50, -1.9) {0.72};
+\node[bnode] (a3) at ( 9.50, -1.9) {0.78};
+% level 2 : children of a1 and a3
+\node[pnode] (b1) at ( 1.70, -3.8) {0.71};
+\node[bnode] (b2) at ( 3.50, -3.8) {0.86};
+\node[pnode] (b3) at ( 5.30, -3.8) {0.64};
+\node[bnode] (b4) at ( 7.70, -3.8) {0.83};
+\node[pnode] (b5) at ( 9.50, -3.8) {0.69};
+\node[pnode] (b6) at (11.30, -3.8) {0.58};
+% level 3 : children of b2 and b4
+\node[bnode] (c1) at ( 2.10, -5.7) {0.91};
+\node[pnode] (c2) at ( 3.50, -5.7) {0.84};
+\node[pnode] (c3) at ( 4.90, -5.7) {0.79};
+\node[pnode] (c4) at ( 6.30, -5.7) {0.80};
+\node[pnode] (c5) at ( 7.70, -5.7) {0.85};
+\node[bnode] (c6) at ( 9.10, -5.7) {0.88};
+% level 4 : children of c1 and c6
+\node[pnode] (d1) at ( 0.95, -7.6) {0.90};
+\node[bnode] (d2) at ( 2.10, -7.6) {0.95};
+\node[pnode] (d3) at ( 3.25, -7.6) {0.87};
+\node[bnode] (d4) at ( 7.95, -7.6) {0.93};
+\node[pnode] (d5) at ( 9.10, -7.6) {0.89};
+\node[pnode] (d6) at (10.25, -7.6) {0.82};
+
+% ---------- edges : solid to a retained child, grey to a pruned one
+\draw[keep] (r)  -- (a1);  \draw[cut]  (r)  -- (a2);  \draw[keep] (r)  -- (a3);
+\draw[cut]  (a1) -- (b1);  \draw[keep] (a1) -- (b2);  \draw[cut]  (a1) -- (b3);
+\draw[keep] (a3) -- (b4);  \draw[cut]  (a3) -- (b5);  \draw[cut]  (a3) -- (b6);
+\draw[keep] (b2) -- (c1);  \draw[cut]  (b2) -- (c2);  \draw[cut]  (b2) -- (c3);
+\draw[cut]  (b4) -- (c4);  \draw[cut]  (b4) -- (c5);  \draw[keep] (b4) -- (c6);
+\draw[cut]  (c1) -- (d1);  \draw[keep] (c1) -- (d2);  \draw[cut]  (c1) -- (d3);
+\draw[keep] (c6) -- (d4);  \draw[cut]  (c6) -- (d5);  \draw[cut]  (c6) -- (d6);
+
+% ---------- level labels ------------------------------------------
+\node[anchor=west, font=\small] at ( 7.10,  0.0) {Root $N_0$};
+\node[lvl] at (12.10, -1.9) {Level 1};
+\node[lvl] at (12.10, -3.8) {Level 2};
+\node[lvl] at (12.10, -5.7) {Level 3};
+\node[lvl] at (12.10, -7.6) {Level 4};
+
+% ---------- one level of the search, annotated --------------------
+\draw[decorate, decoration={brace, amplitude=5pt, mirror}, draw=black!55]
+      (0.05, -1.75) -- (0.05, -3.95);
+\node[rotate=90, anchor=south, font=\scriptsize, text=black!55, align=center]
+      at (-0.20, -2.85)
+      {\textsc{Expand} $\to$ score by $g$ $\to$ keep $w$};
+
+% ---------- legend -------------------------------------------------
+\node[bnode] at (1.35, -9.30) {0.86};
+\node[lgd]   at (1.95, -9.30)
+      {node retained in the beam $\mathcal{W}$: one of the $w$ largest scores
+       \emph{of the whole level}};
+\node[pnode] at (1.35, -10.30) {0.64};
+\node[lgd]   at (1.95, -10.30)
+      {candidate of $\mathcal{C}$ discarded by pruning; its subtree is never
+       explored};
+\node[lgd]   at (0.90, -11.20)
+      {The number inside a node is its score $g(N)$, the objective value
+       \eqref{eq:bs-score} of the rollout \textsc{FCH}$(N)$.};
+\node[lgd]   at (0.90, -11.95) {Beam width $w = 2$};
+
+\end{tikzpicture}
+\caption{The first four levels of a run of \textsc{BeamSearch}
+(Algorithm~\ref{alg:bs3d}) with beam width $w = 2$; one level corresponds to
+one iteration of the main loop. The root $N_0$ is the empty packing. Every
+node of the current beam is expanded into at most $m$ children, one per action
+$(j,s,i,o)$, so a node of level $t$ is a packing of $t$ items; each child is
+completed by the rollout \textsc{FCH} and scored by \eqref{eq:bs-score}. The
+$w$ largest scores of a level, shaded, form the next beam and every other
+candidate is pruned. The comparison is made across the whole level, so the
+survivors need not have the same parent, and a pruned candidate may well
+outscore a node retained at an earlier level (here $0.85$ at level~3 against
+$0.78$ at level~1). The search continues below level~4 until no node admits a
+further placement or the limit $T^{\max}$ is reached. The incumbent
+$(P^\star, f^\star)$ is the best rollout seen so far, $f^\star = 0.95$ at this
+point; being a complete packing, it lies deeper than any node held in the
+beam.}
+\label{fig:bs-tree}
+\end{figure}
