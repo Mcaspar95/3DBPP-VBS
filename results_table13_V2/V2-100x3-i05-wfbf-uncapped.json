@@ -1,0 +1,31 @@
+{
+  "table": 13,
+  "submodel": "V2",
+  "config": "100x3",
+  "items": 100,
+  "bins": 3,
+  "instance": 5,
+  "instance_file": "MHKP/t10_n100_b3/t10_n100_b3_instance05.txt",
+  "solver": "wfbf",
+  "time_limit": null,
+  "seed": 1,
+  "alpha": 0.8,
+  "load_factor": 3.0,
+  "stability_rule": "peraxis",
+  "host": "node026",
+  "started": "2026-09-22T15:35:20+00:00",
+  "objective": 0.42029997519862794,
+  "n_packed": 39,
+  "runtime": 0.006604671478271484,
+  "status": "DONE",
+  "mode": "corner",
+  "used_bins": 3,
+  "violations": 3,
+  "violation_detail": [
+    "item 51 floats in bin 0",
+    "bin 1: CoM (55.69, 45.15, 47.51) outside the pyramid (vertex 60.0, 72.0, 60.0, xi 96.0)",
+    "bin 2: CoM (69.12, 58.42, 50.02) outside the pyramid (vertex 72.0, 84.0, 60.0, xi 115.2)"
+  ],
+  "feasible_V2": false,
+  "finished": "2026-09-22T15:35:20+00:00"
+}
