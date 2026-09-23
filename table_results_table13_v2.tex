@@ -1,26 +1,24 @@
 % =====================================================================
-% Table 13 analogue for submodel V2: MILP vs WFBF vs beam search on the
-% multiple-bin instances (n = 70-200, m = 2, 3, 5), five instances per
-% (n, m) configuration, 225 runs in total.
+% Table 13 analogue for submodel V2: MILP vs WFBF-grid vs beam search on
+% the multiple-bin instances (n = 70-200, m = 2, 3, 5), five instances
+% per (n, m) configuration.
 %
 % Layout follows Table 13 of Deplano et al. (2019): objective (1) with
 % the number of OPENED bins in parentheses, then the running time, for
 % each method. LOWER OBJECTIVE IS BETTER. Every figure is the mean over
 % the five instances of that configuration.
 %
-% WFBF is split into two columns, as main_slurm.py now runs it: the same
-% heuristic under the two readings of Algorithm 1 line 15.
+% WFBF-corner (candidate positions restricted to the origin and the
+% corners opened by placed items) is DROPPED from this table: its
+% running time (milliseconds) is not comparable to the paper's own WFBF
+% column, only wfbf-grid's is - see table_results_wfbf_grid_vs_corner.tex
+% for both readings measured side by side at n = 18-22. wfbf-grid is the
+% literal enumeration of Algorithm 1 line 15, every position on the
+% beta-grid (beta=1 here), capped at 900 s in main_slurm.py; it exhausts
+% that cap on the three largest 5-bin configurations, where all five
+% instances time out and the row is left empty.
 %
-%   wfbf-corner  candidate positions restricted to corner points - the
-%                origin and the corners opened by placed items. Not time
-%                limited; finishes in milliseconds. NOT comparable to the
-%                paper's own WFBF timings.
-%   wfbf-grid    the literal enumeration: every position on the
-%                beta-grid (beta=1 here). This is the reading whose TIME
-%                is comparable to the paper's WFBF column. Capped at
-%                3600 s in main_slurm.py. WFBF-grid (the literal position enumeration of Algorithm~1) has not been run on this grid yet and is omitted rather than shown empty.
-%
-% Four things to keep in mind when reading this table:
+% Three things to keep in mind when reading this table:
 %
 %  1. The MILP column is degenerate. On all 75 runs Gurobi returned the
 %     EMPTY packing - no item placed, no bin opened - and reported it as
@@ -32,16 +30,16 @@
 %     column is reported as measured and is a defect to investigate, not
 %     a result about the model of the paper.
 %
-%  2. Neither WFBF column enforces the centre-of-mass or the load-bearing
-%     constraints, and wfbf-corner is not V2-feasible on 64 of the 75
-%     instances, so its objective is optimistic and not comparable with
-%     BS.
+%  2. wfbf-grid enforces neither the centre-of-mass nor the load-bearing
+%     constraints; it is V2-feasible on only 1 of its 60 completed runs
+%     (81 centre-of-mass, 74 load-bearing and 31 floating-item
+%     violations), so its objective is optimistic and not comparable
+%     with BS.
 %
-%  3. wfbf-corner's reports before the corner/grid split were written
-%     under solver "wfbf" with budget tag "uncapped"; they are corner
-%     runs under today's naming and are deduplicated against re-runs of
-%     the same instances (identical objective, seed=1 is deterministic)
-%     so each configuration is still averaged over 5, not 10.
+%  3. wfbf-grid times out at 900 s on 15 of the 75 runs - every instance
+%     of 130x5, 160x5 and 200x5 - so those three rows carry no figure at
+%     all rather than an average over whichever instances happened to
+%     finish. Its mean row is therefore over the 60 completed runs.
 % =====================================================================
 
 \providecommand{\up}{\rule{0pt}{2.6ex}}
@@ -55,36 +53,37 @@ Table~13 of Deplano et al. (2019): objective~(1) with the number of
 opened bins in parentheses, followed by the running time. Lower
 objective is better. Each entry is the mean over five instances; the
 MILP ran under a 3600\,s limit, beam search (BS) under 900\,s.
-WFBF-corner is a single deterministic pass restricted to corner-point
-candidates and is not time limited; WFBF-grid is the same heuristic
-under the literal position enumeration of Algorithm~1, capped at
-3600\,s. WFBF-grid (the literal position enumeration of Algorithm~1) has not been run on this grid yet and is omitted rather than shown empty. BS is V2-feasible on all 75 runs and wins the
-objective at every size. The MILP column is degenerate: on every run
-the solver returned the empty packing (no bin opened, hence objective
-$=m$) and declared it optimal, which the BS solutions on the same
-instances contradict; it is reported as measured.$^{\ddagger}$}
+WFBF-grid is the paper's heuristic under the literal position
+enumeration of Algorithm~1, capped at 900\,s, which it exhausts on the
+three largest five-bin configurations (dashes); this is the reading
+whose running time is comparable to the one the original authors
+report. BS is V2-feasible on all 75 runs and wins the objective at
+every size. The MILP column is degenerate: on every run the solver
+returned the empty packing (no bin opened, hence objective $=m$) and
+declared it optimal, which the BS solutions on the same instances
+contradict; it is reported as measured.$^{\ddagger}$}
 \label{tab:results-table13-v2}
 \begin{tabular}{@{}rr@{\quad}lr@{\quad}lr@{\quad}lr@{}}
 \hline
-\multicolumn{2}{@{}c}{\up Instance} & \multicolumn{2}{c}{MILP$^{\ddagger}$} & \multicolumn{2}{c}{WFBF-corner$^{\dagger}$} & \multicolumn{2}{c}{BS} \\
+\multicolumn{2}{@{}c}{\up Instance} & \multicolumn{2}{c}{MILP$^{\ddagger}$} & \multicolumn{2}{c}{WFBF-grid$^{\S}$} & \multicolumn{2}{c}{BS} \\
 items & bins & obj (used bins) & time (s) & obj (used bins) & time (s) & obj (used bins) & time (s) \\ \hline\up
- 70 & 2 & 2.0000(0) & 3.13 & 0.3654(2) & 0.0046 & \textbf{0.1561(2)} & 354.59 \\
-100 & 2 & 2.0000(0) & 7.20 & 0.4246(2) & 0.0055 & \textbf{0.1247(2)} & 528.62 \\
-130 & 2 & 2.0000(0) & 12.64 & 0.4408(2) & 0.0064 & \textbf{0.1209(2)} & 704.27 \\
-160 & 2 & 2.0000(0) & 21.84 & 0.3681(2) & 0.0086 & \textbf{0.1004(2)} & 830.04 \\
-200 & 2 & 2.0000(0) & 37.38 & 0.3288(2) & 0.0097 & \textbf{0.1035(2)} & 881.57 \\
- 70 & 3 & 3.0000(0) & 4.18 & 0.7486(3) & 0.0039 & \textbf{0.3364(3)} & 456.25 \\
-100 & 3 & 3.0000(0) & 9.23 & 0.7009(3) & 0.0063 & \textbf{0.2859(3)} & 788.16 \\
-130 & 3 & 3.0000(0) & 16.28 & 0.6508(3) & 0.0075 & \textbf{0.2965(3)} & 900.05 \\
-160 & 3 & 3.0000(0) & 25.48 & 0.6832(3) & 0.0093 & \textbf{0.3400(3)} & 900.12 \\
-200 & 3 & 3.0000(0) & 39.82 & 0.5569(3) & 0.0124 & \textbf{0.2960(3)} & 900.12 \\
- 70 & 5 & 5.0000(0) & 8.61 & 1.4787(5) & 0.0042 & \textbf{0.8915(5)} & 304.86 \\
-100 & 5 & 5.0000(0) & 19.70 & 1.3506(5) & 0.0056 & \textbf{0.7973(5)} & 659.55 \\
-130 & 5 & 5.0000(0) & 39.84 & 1.2061(5) & 0.0078 & \textbf{0.7189(5)} & 900.07 \\
-160 & 5 & 5.0000(0) & 66.51 & 1.1859(5) & 0.0094 & \textbf{0.7111(5)} & 900.05 \\
-200 & 5 & 5.0000(0) & 101.63 & 1.1567(5) & 0.0112 & \textbf{0.8038(5)} & 900.19 \\
+ 70 & 2 & 2.0000(0) & 3.13 & 1.0705(2) & 137.24 & \textbf{0.1561(2)} & 354.59 \\
+100 & 2 & 2.0000(0) & 7.20 & 1.0161(2) & 192.62 & \textbf{0.1247(2)} & 528.62 \\
+130 & 2 & 2.0000(0) & 12.64 & 0.8924(2) & 248.02 & \textbf{0.1209(2)} & 704.27 \\
+160 & 2 & 2.0000(0) & 21.84 & 0.7787(2) & 316.66 & \textbf{0.1004(2)} & 830.04 \\
+200 & 2 & 2.0000(0) & 37.38 & 0.7238(2) & 399.00 & \textbf{0.1035(2)} & 881.57 \\
+ 70 & 3 & 3.0000(0) & 4.18 & 1.5911(3) & 236.07 & \textbf{0.3364(3)} & 456.25 \\
+100 & 3 & 3.0000(0) & 9.23 & 1.4512(3) & 345.65 & \textbf{0.2859(3)} & 788.16 \\
+130 & 3 & 3.0000(0) & 16.28 & 1.4170(3) & 427.17 & \textbf{0.2965(3)} & 900.05 \\
+160 & 3 & 3.0000(0) & 25.48 & 1.2942(3) & 563.00 & \textbf{0.3400(3)} & 900.12 \\
+200 & 3 & 3.0000(0) & 39.82 & 1.2489(3) & 722.76 & \textbf{0.2960(3)} & 900.12 \\
+ 70 & 5 & 5.0000(0) & 8.61 & 2.1827(5) & 569.53 & \textbf{0.8915(5)} & 304.86 \\
+100 & 5 & 5.0000(0) & 19.70 & 2.1232(5) & 826.72 & \textbf{0.7973(5)} & 659.55 \\
+130 & 5 & 5.0000(0) & 39.84 & --- & --- & \textbf{0.7189(5)} & 900.07 \\
+160 & 5 & 5.0000(0) & 66.51 & --- & --- & \textbf{0.7111(5)} & 900.05 \\
+200 & 5 & 5.0000(0) & 101.63 & --- & --- & \textbf{0.8038(5)} & 900.19 \\
 \hline
-\multicolumn{2}{@{}l}{\up mean} & 3.3333(0.00) & 27.56 & 0.7764(3.33) & 0.0075 & \textbf{0.4055(3.33)} & 727.23 \down\\
+\multicolumn{2}{@{}l}{\up mean} & 3.3333(0.00) & 27.56 & 1.3158(2.92) & 415.37 & \textbf{0.4055(3.33)} & 727.23 \down\\
 \hline
 \multicolumn{8}{@{}p{0.95\textwidth}@{}}{\footnotesize
 $^{\ddagger}$MILP: Gurobi returned status \textsc{optimal} with a zero
@@ -96,19 +95,23 @@ returns verified V2-feasible packings of far lower objective on the same
 instances, the empty packing is not optimal, and this column reflects a
 defect in the model as built at these sizes rather than a property of
 the formulation of the paper. \newline
-$^{\dagger}$WFBF-corner enforces neither the centre-of-mass nor the
-load-bearing constraints; its packings are V2-feasible on only 11 of
-the 75 instances (99 centre-of-mass, 10 floating-item and 1
-load-bearing violations in total), so its objective is optimistic and
-its column is a reference point, not a valid V2 result. Its runtime is
-milliseconds because it searches a handful of corner candidates per
-item, not the paper's own enumeration; see
+$^{\S}$WFBF-grid reads line~15 of Algorithm~1 literally: every position
+on the $\beta$-grid, with $\beta=1$ on these instances. This is the
+reading whose running time is comparable to the one the original
+authors report; a corner-point restriction of the same heuristic runs
+in milliseconds instead and is not shown here, see
 Table~\ref{tab:wfbf-grid-vs-corner} for both readings measured
-together at n~=~18--22 (roughly four orders of magnitude apart there).
-\newline
-$^{\S}$WFBF-grid has not been run on this grid yet; the column is omitted above rather than shown with placeholder dashes. \newline
+together at $n=18$--$22$ (roughly four orders of magnitude apart
+there). It was capped at 900\,s and exhausted that cap on all five
+instances of $130\times5$, $160\times5$ and $200\times5$, which is why
+those rows carry dashes and why its mean is over the 60 completed runs
+rather than all 75. It enforces neither the centre-of-mass nor the
+load-bearing constraints and is V2-feasible on only 1 of its 60
+completed runs (81 centre-of-mass, 74 load-bearing and 31
+floating-item violations), so its objective is optimistic and its
+column is a reference point, not a valid V2 result. \newline
 Beam search hit its 900\,s limit on 40 of the 75 runs and never fell
 back on its greedy fallback; it opened all $m$ bins on every instance,
-as did WFBF-corner.}
+as did WFBF-grid where it finished.}
 \end{tabular}
 \end{table}

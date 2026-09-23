@@ -1,0 +1,33 @@
+{
+  "table": 13,
+  "submodel": "V2",
+  "config": "70x2",
+  "items": 70,
+  "bins": 2,
+  "instance": 3,
+  "instance_file": "MHKP/t10_n70_b2/t10_n70_b2_instance03.txt",
+  "solver": "wfbf-grid",
+  "time_limit": 900.0,
+  "seed": 1,
+  "alpha": 0.8,
+  "load_factor": 3.0,
+  "stability_rule": "peraxis",
+  "host": "node833",
+  "started": "2026-09-22T18:15:20+00:00",
+  "mode": "grid",
+  "beta": 1,
+  "grid_step": 1,
+  "time_limit_enforced": true,
+  "objective": 1.0253548418215128,
+  "n_packed": 24,
+  "runtime": 137.92410469055176,
+  "status": "DONE",
+  "repeats": 1,
+  "used_bins": 2,
+  "violations": 1,
+  "violation_detail": [
+    "bin 1: CoM (58.16, 68.25, 64.23) outside the pyramid (vertex 60.0, 72.0, 60.0, xi 96.0)"
+  ],
+  "feasible_V2": false,
+  "finished": "2026-09-22T18:17:38+00:00"
+}
