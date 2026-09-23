@@ -133,6 +133,18 @@ TABLE8_SIZES = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
 
 TABLE8_SETS = 10
 
+# Table 11 of Deplano et al. (2019) is WFBF vs the V2 MILP on 1 bin, n = 18-90
+# - exactly the sizes and instance shape TABLE8_SIZES already covers (the two
+# tables share the same size sweep; the difference is which methods they
+# compare). The t8_n* groups therefore double as the Table 11 grid; no
+# separate generator is needed for it.
+#
+# Table 12 continues the same sweep, 1 bin, n = 100-200 in steps of 10. It is
+# a distinct size range from Table 8/11, so it gets its own groups here.
+TABLE12_SIZES = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]
+
+TABLE12_SETS = 10
+
 
 def item_fits_any_bin(dims, bins):
     """
@@ -302,7 +314,7 @@ def read_instance(path):
 
 
 def generate_all(output_directory="MHKP", sets=None, seed=20260917,
-                 table8=False):
+                 table8=False, table12=False):
     """
     Generate the whole corpus.
 
@@ -324,7 +336,15 @@ def generate_all(output_directory="MHKP", sets=None, seed=20260917,
 
     if table8:
         # One group per Table 8 size, so that a size can be run on its own.
+        # This grid also serves Table 11, which compares WFBF against V2 on
+        # the same 1-bin, n=18-90 sweep - see the note above TABLE8_SIZES.
         groups += [(f"t8_n{n}", n, 1, TABLE8_SETS) for n in TABLE8_SIZES]
+
+    if table12:
+        # Table 12: 1 bin, n = 100-200. Named t12_n* to keep it apart from
+        # the t8_n*/Table 11 range, since both are 1-bin single-size groups
+        # and could otherwise collide if the ranges ever overlapped.
+        groups += [(f"t12_n{n}", n, 1, TABLE12_SETS) for n in TABLE12_SIZES]
 
     for (name, n_items, n_bins, default_count) in groups:
 
@@ -373,14 +393,20 @@ def main():
     parser.add_argument("--seed", type=int, default=20260917,
                         help="seed for the whole corpus")
     parser.add_argument("--table8", action="store_true",
-                        help="also generate the Table 8 size sweep: one bin, "
-                             f"{len(TABLE8_SIZES)} sizes from "
+                        help="also generate the Table 8/11 size sweep: one "
+                             f"bin, {len(TABLE8_SIZES)} sizes from "
                              f"{TABLE8_SIZES[0]} to {TABLE8_SIZES[-1]} items")
+    parser.add_argument("--table12", action="store_true",
+                        help="also generate the Table 12 size sweep: one "
+                             f"bin, {len(TABLE12_SIZES)} sizes from "
+                             f"{TABLE12_SIZES[0]} to {TABLE12_SIZES[-1]} "
+                             f"items")
 
     args = parser.parse_args()
 
     generate_all(output_directory=args.output_directory,
-                 sets=args.sets, seed=args.seed, table8=args.table8)
+                 sets=args.sets, seed=args.seed, table8=args.table8,
+                 table12=args.table12)
 
 
 if __name__ == "__main__":

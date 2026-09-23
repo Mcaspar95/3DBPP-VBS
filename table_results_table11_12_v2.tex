@@ -1,0 +1,178 @@
+% =====================================================================
+% Table 11+12 analogue for submodel V2: MILP vs WFBF-grid vs beam search
+% on the single-bin size sweep. Two tables, matching the paper's own
+% split: Table 11 (n = 18-90, ten instances per size) has all three
+% methods; Table 12 (n = 100-200) has WFBF-grid and BS only.
+% Data from results_table11_12_V2/.
+%
+% WHY TABLE 12 HAS NO MILP COLUMN: the V2 MILP's empty-packing defect
+% (see the Table 11 notes below) is confirmed at n=100 and expected to
+% persist across n=100-200, so the MILP was deliberately not run for
+% this range (slurm_t12_nomilp.sbatch) rather than spend cluster time
+% reproducing a known-bad result 110 more times. Once the defect is
+% root-caused and fixed, the MILP column can be filled in from
+% slurm_t11t12.sbatch with --solver milp.
+%
+% Layout follows table_results_table13_v2.tex: objective (1) with the
+% running time, for each method. LOWER OBJECTIVE IS BETTER. Every figure
+% is the mean over the ten instances of that size.
+%
+% Three things to keep in mind when reading these tables:
+%
+%  1. The MILP column (Table 11 only) is degenerate for n >= 27. On
+%     those 17 sizes Gurobi returns the EMPTY packing (no item placed,
+%     no bin opened) in under 9 s and reports it OPTIMAL with a zero
+%     gap, so the objective is exactly 1.0. Beam search finds verified
+%     V2-feasible packings of objective 0.04-0.14 on the very same
+%     instances, so the MILP's optimality claim cannot be correct. This
+%     is the SAME defect already documented for the multiple-bin grid in
+%     table_results_table13_v2.tex; it was previously thought to be
+%     specific to multiple bins, but it reproduces here with a single
+%     bin once n is large enough, so the trigger is instance size (or a
+%     property that correlates with it), not bin count. For n = 18-26
+%     the MILP behaves normally, hitting TIME_LIMIT with a non-trivial
+%     packing. The column is reported as measured and is a defect to
+%     investigate, not a result about the model of the paper.
+%
+%  2. For the n = 18-26 rows, where the MILP hits TIME_LIMIT rather than
+%     the degenerate optimum, its packings show verifier violations
+%     (63-78 per size, all "disallowed rotation" or "floating item").
+%     Every one of these comes from a TIME_LIMIT run; all 140 OPTIMAL
+%     runs elsewhere in Table 11 have zero violations. This looks like
+%     a floating-point tolerance issue reading Gurobi's incumbent at an
+%     unconverged cutoff rather than a genuine infeasibility, but it has
+%     not been root-caused, so it is reported rather than silently
+%     corrected.
+%
+%  3. WFBF-grid's violation count keeps climbing with n (11 at n=100 up
+%     to 23 at n=200), consistent with its behaviour throughout this
+%     paper: it enforces neither the centre-of-mass nor the
+%     load-bearing constraints, so more items simply means more chances
+%     to violate one. Beam search remains at 0 violations across every
+%     size in both tables.
+% =====================================================================
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodel V2 (stability, centre of mass and load bearing,
+constraints (1)--(13g)) on the single-bin size sweep of Table~11 of
+Deplano et al. (2019), $n = 18$--$90$, ten instances per size.
+Objective~(1), lower is better; each entry is the mean over ten
+instances. The MILP ran under a 3600\,s limit, WFBF-grid (the literal
+position enumeration of Algorithm~1) under 900\,s, beam search (BS)
+under 900\,s. BS is V2-feasible on all 230 runs and wins the objective
+at every size. The MILP column is degenerate for $n \geq 27$: the
+solver returns the empty packing (objective $=1$) and declares it
+optimal, which the BS solutions on the same instances
+contradict.$^{\ddagger}$}
+\label{tab:results-table11-v2}
+\begin{tabular}{@{}r@{\quad}lr@{\quad}lr@{\quad}lr@{}}
+\hline
+\multicolumn{1}{@{}c}{\up $n$} & \multicolumn{2}{c}{MILP$^{\ddagger}$} & \multicolumn{2}{c}{WFBF-grid$^{\S}$} & \multicolumn{2}{c}{BS} \\
+ & obj & time (s) & obj & time (s) & obj & time (s) \\ \hline\up
+18 & 0.3798 &  3600.0 & 0.6736 & 17.7 & \textbf{0.1241} &  7.14 \\
+19 & 0.3814 &  3600.0 & 0.6678 & 18.6 & \textbf{0.1317} &  8.28 \\
+20 & 0.3723 &  3600.0 & 0.6720 & 20.1 & \textbf{0.1425} & 10.60 \\
+21 & 0.3647 &  3600.0 & 0.6629 & 21.1 & \textbf{0.1157} & 11.14 \\
+22 & 0.3528 &  3600.0 & 0.6475 & 21.9 & \textbf{0.1046} & 13.62 \\
+23 & 0.3637 &  3600.0 & 0.6449 & 22.7 & \textbf{0.1043} & 13.90 \\
+24 & 0.3655 &  3600.0 & 0.6368 & 24.7 & \textbf{0.1089} & 16.04 \\
+25 & 0.3609 &  3600.0 & 0.6409 & 25.1 & \textbf{0.0925} & 15.74 \\
+26 & 0.3708 &  3600.0 & 0.6322 & 26.8 & \textbf{0.1023} & 21.89 \\
+27 & 1.0000$^{\ddagger}$ &     0.5 & 0.6279 & 28.1 & \textbf{0.0967} & 21.08 \\
+28 & 1.0000$^{\ddagger}$ &     0.6 & 0.6343 & 29.0 & \textbf{0.0980} & 25.70 \\
+29 & 1.0000$^{\ddagger}$ &     0.6 & 0.6369 & 29.4 & \textbf{0.0840} & 25.55 \\
+30 & 1.0000$^{\ddagger}$ &     0.6 & 0.6215 & 30.6 & \textbf{0.0904} & 25.87 \\
+35 & 1.0000$^{\ddagger}$ &     0.9 & 0.6053 & 35.6 & \textbf{0.0832} & 33.07 \\
+40 & 1.0000$^{\ddagger}$ &     1.5 & 0.5936 & 41.4 & \textbf{0.0738} & 36.08 \\
+45 & 1.0000$^{\ddagger}$ &     2.0 & 0.5573 & 46.3 & \textbf{0.0687} & 39.87 \\
+50 & 1.0000$^{\ddagger}$ &     2.8 & 0.5543 & 50.7 & \textbf{0.0700} & 47.79 \\
+55 & 1.0000$^{\ddagger}$ &     3.1 & 0.5429 & 56.5 & \textbf{0.0577} & 49.42 \\
+60 & 1.0000$^{\ddagger}$ &     4.4 & 0.5406 & 62.7 & \textbf{0.0503} & 56.86 \\
+65 & 1.0000$^{\ddagger}$ &     4.9 & 0.5312 & 65.4 & \textbf{0.0539} & 47.95 \\
+70 & 1.0000$^{\ddagger}$ &     5.9 & 0.5002 & 72.7 & \textbf{0.0591} & 76.42 \\
+80 & 1.0000$^{\ddagger}$ &     6.3 & 0.4792 & 82.5 & \textbf{0.0489} & 72.91 \\
+90 & 1.0000$^{\ddagger}$ &     8.9 & 0.4853 & 92.9 & \textbf{0.0428} & 72.51 \\
+\hline
+\up mean & 0.7527 & 1410.6 & 0.5995 & 40.1 & \textbf{0.0871} & 32.58 \down\\
+\hline
+\multicolumn{7}{@{}p{0.95\textwidth}@{}}{\footnotesize
+$^{\ddagger}$MILP: for $n = 18$--$26$ the solver hits the 3600\,s
+\textsc{TimeLimit} with a non-empty, non-optimal packing (gap
+95--100\%). For $n \geq 27$ (marked with $^{\ddagger}$ in the obj
+column), Gurobi instead returns status \textsc{optimal} with a zero gap
+in under 9\,s, but with every assignment variable at zero -- no item
+packed, no bin opened -- so the objective is exactly~1. Since beam
+search returns verified V2-feasible packings of far lower objective on
+the same instances, the empty packing is not optimal, and this is the
+same defect documented for the multiple-bin grid in
+Table~\ref{tab:results-table13-v2}. It was previously thought specific
+to multiple bins; reproducing it here with a single bin shows the
+trigger is instance size (or something correlated with it) rather than
+bin count. Separately, the $n=18$--$26$ \textsc{TimeLimit} solutions
+show verifier violations (rotation and floating-item) that do not occur
+on any \textsc{optimal} run in this table; this looks like a tolerance
+issue reading an unconverged incumbent and has not been root-caused.
+\newline
+$^{\S}$WFBF-grid reads line~15 of Algorithm~1 literally: every position
+on the $\beta$-grid, with $\beta=1$ on these instances; this is the
+reading whose running time is comparable to the one the original
+authors report. It enforces neither the centre-of-mass nor the
+load-bearing constraints (140 violations across the 230 runs in this
+table), so its objective is optimistic and its column is a reference
+point, not a valid V2 result; see
+Table~\ref{tab:wfbf-grid-vs-corner} for the corner-point reading of the
+same heuristic, measured separately at $n=18$--$22$. \newline
+Beam search is V2-feasible on all 230 runs and opened the bin on every
+instance.}
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodel V2 on the single-bin size sweep of Table~12 of
+Deplano et al. (2019), $n = 100$--$200$, ten instances per size.
+Objective~(1), lower is better; each entry is the mean over ten
+instances. WFBF-grid (the literal position enumeration of Algorithm~1)
+ran under 900\,s and beam search (BS) under 900\,s. The MILP column is
+OMITTED here: it reproduces the empty-packing defect of
+Table~\ref{tab:results-table11-v2} already at $n=100$ (checked
+directly), and was not run for the rest of this range on that
+basis.$^{\P}$ BS is V2-feasible on all 110 runs and wins the objective
+at every size, by a wider margin than in Table~\ref{tab:results-table11-v2}.}
+\label{tab:results-table12-v2}
+\begin{tabular}{@{}r@{\quad}lr@{\quad}lr@{}}
+\hline
+\multicolumn{1}{@{}c}{\up $n$} & \multicolumn{2}{c}{WFBF-grid$^{\S}$} & \multicolumn{2}{c}{BS} \\
+ & obj & time (s) & obj & time (s) \\ \hline\up
+100 & 0.4653 & 102.7 & \textbf{0.0465} & 104.01 \\
+110 & 0.3975 & 116.1 & \textbf{0.0420} & 146.70 \\
+120 & 0.4327 & 122.5 & \textbf{0.0362} & 102.14 \\
+130 & 0.3767 & 134.1 & \textbf{0.0359} & 130.68 \\
+140 & 0.3820 & 144.5 & \textbf{0.0375} & 163.52 \\
+150 & 0.3778 & 154.1 & \textbf{0.0329} & 128.76 \\
+160 & 0.3462 & 171.5 & \textbf{0.0332} & 136.80 \\
+170 & 0.3283 & 178.1 & \textbf{0.0356} & 163.32 \\
+180 & 0.3058 & 190.9 & \textbf{0.0324} & 185.88 \\
+190 & 0.3022 & 199.6 & \textbf{0.0343} & 160.08 \\
+200 & 0.3006 & 210.0 & \textbf{0.0312} & 205.73 \\
+\hline
+\up mean & 0.3650 & 156.7 & \textbf{0.0361} & 147.96 \down\\
+\hline
+\multicolumn{5}{@{}p{0.72\textwidth}@{}}{\footnotesize
+$^{\P}$See slurm\_t12\_nomilp.sbatch: the MILP was deliberately excluded
+from this run rather than spend a 3600\,s allocation on each of 110
+instances to reproduce a known defect (Table~\ref{tab:results-table11-v2},
+note~$\ddagger$). \newline
+$^{\S}$WFBF-grid enforces neither the centre-of-mass nor the
+load-bearing constraints; violations rise from 11 at $n=100$ to 23 at
+$n=200$ (218 total across the 110 runs in this table), so its objective
+is optimistic and its column is a reference point, not a valid V2
+result. \newline
+Beam search is V2-feasible on all 110 runs and opened the bin on every
+instance.}
+\end{tabular}
+\end{table}

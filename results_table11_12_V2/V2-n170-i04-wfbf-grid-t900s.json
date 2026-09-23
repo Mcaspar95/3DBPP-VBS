@@ -1,0 +1,33 @@
+{
+  "table": 12,
+  "submodel": "V2",
+  "items": 170,
+  "bins": 1,
+  "instance": 4,
+  "instance_file": "MHKP/t12_n170/t12_n170_instance04.txt",
+  "solver": "wfbf-grid",
+  "time_limit": 900.0,
+  "seed": 1,
+  "alpha": 0.8,
+  "load_factor": 3.0,
+  "stability_rule": "peraxis",
+  "host": "node835",
+  "started": "2026-09-23T14:09:54+00:00",
+  "mode": "grid",
+  "beta": 1,
+  "grid_step": 1,
+  "time_limit_enforced": true,
+  "objective": 0.3525567129631435,
+  "n_packed": 29,
+  "runtime": 174.78639316558838,
+  "status": "DONE",
+  "repeats": 1,
+  "used_bins": 1,
+  "violations": 2,
+  "violation_detail": [
+    "bin 0, item 134: bears 198970891.6 > capacity 59212775.2",
+    "bin 0, item 125: bears 79405647.3 > capacity 44940161.8"
+  ],
+  "feasible_V2": false,
+  "finished": "2026-09-23T14:12:48+00:00"
+}

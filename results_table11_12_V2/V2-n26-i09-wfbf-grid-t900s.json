@@ -1,0 +1,33 @@
+{
+  "table": 11,
+  "submodel": "V2",
+  "items": 26,
+  "bins": 1,
+  "instance": 9,
+  "instance_file": "MHKP/t8_n26/t8_n26_instance09.txt",
+  "solver": "wfbf-grid",
+  "time_limit": 900.0,
+  "seed": 1,
+  "alpha": 0.8,
+  "load_factor": 3.0,
+  "stability_rule": "peraxis",
+  "host": "node826",
+  "started": "2026-09-23T11:29:31+00:00",
+  "mode": "grid",
+  "beta": 1,
+  "grid_step": 1,
+  "time_limit_enforced": true,
+  "objective": 0.5554120370373214,
+  "n_packed": 15,
+  "runtime": 29.13817286491394,
+  "status": "DONE",
+  "repeats": 1,
+  "used_bins": 1,
+  "violations": 2,
+  "violation_detail": [
+    "bin 0: CoM (73.67, 34.38, 50.52) outside the pyramid (vertex 60.0, 60.0, 60.0, xi 96.0)",
+    "bin 0, item 19: bears 183570495.4 > capacity 71495712.0"
+  ],
+  "feasible_V2": false,
+  "finished": "2026-09-23T11:30:01+00:00"
+}
