@@ -1,0 +1,132 @@
+% =====================================================================
+% Table 10 analogue for submodels V0, V1 and V2: our own MILP vs our own
+% beam search (BS) on the multiple-bin grid of Deplano et al. (2019),
+% items in {70, 100, 130, 160, 200} x bins in {2, 3, 5}, i.e. the same 15
+% configurations as Table 13 (table_results_table13_v2.tex), five
+% instances per configuration, ALL THREE submodels sharing identical
+% derived data (weights, centres of mass, load limits) for a given
+% instance so V0/V1/V2 differ only in which constraints are active.
+% Data from results_table10/ (450 reports: 15 configs x 5 instances x 6
+% columns); generated via
+%   python3 main_slurm_table10.py --summarize --csv results_table10_summary.csv
+%
+% Unlike Table 13, there is no WFBF-grid column here: Table 10 of the
+% paper has no heuristic column at all, only the paper's own V0/V1/V2
+% MILP, so this table reports MILP and BS only, submodel outermost, to
+% mirror that layout. Layout otherwise follows table_results_table13_v2.tex:
+% objective (1) with the number of OPENED bins in parentheses, then the
+% running time. LOWER OBJECTIVE IS BETTER. Every figure is the mean over
+% the five instances of that configuration; the MILP ran under 3600 s
+% (Table 10's own limit), BS under 900 s (this project's other
+% multiple-bin budget, matching Table 13).
+%
+% Four things to keep in mind when reading this table:
+%
+%  1. V1 and V2 MILP are degenerate on all 75 runs each: Gurobi returns
+%     the EMPTY packing (no item placed, no bin opened) and reports it
+%     OPTIMAL with a zero gap in well under the 3600 s budget, so the
+%     objective is exactly the number of bins m. This is the SAME defect
+%     already documented for V2 in table_results_table13_v2.tex and
+%     table_results_table11_12_v2.tex; it now reproduces identically
+%     under V1, confirming the trigger is instance size (or something
+%     correlated with it), not which of V1/V2's extra constraints is
+%     active. BS finds verified feasible packings of far lower objective
+%     on the very same instances for both submodels, so the MILP's
+%     optimality claim cannot be correct; the columns are reported as
+%     measured.
+%
+%  2. V0 MILP behaves differently: on all 75 runs it exhausts the full
+%     3600 s as TIME_LIMIT (never OPTIMAL) with a reported gap of
+%     essentially 100%, and returns a NON-empty packing (20-40 items
+%     placed, all m bins opened). This rules out the empty-packing defect
+%     for V0 at these sizes, but every one of these packings fails
+%     verification --- exclusively on "disallowed rotation", 0 centre-of-
+%     mass or load-bearing violations since V0 does not check those. This
+%     is the same rotation-tolerance symptom already seen on TIME_LIMIT
+%     (as opposed to degenerate-OPTIMAL) MILP runs in
+%     table_results_table11_12_v2.tex ($n=18$--$26$), now confirmed on
+%     the multi-bin grid as well; it has not been root-caused.
+%
+%  3. BS is feasible on all 225 runs across the three submodels (0
+%     violations) and opens all m bins on every run. It hits its 900 s
+%     cap on 0/75 V0 runs, 32/75 V1 runs and 40/75 V2 runs (rising with
+%     the number of active constraints, as expected), never falling back
+%     to its greedy fallback.
+%
+%  4. The times shown for the MILP columns are solve times only; building
+%     the model took a further 3.6-45.2 s (V0), 3.6-42.4 s (V1) and
+%     4.4-54.8 s (V2) on average per configuration, on top of the figures
+%     in the table.
+% =====================================================================
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodels V0 (stability only), V1 (+ centre of mass) and V2 (+
+load bearing) on the multiple-bin grid of Table~10 of Deplano et al.
+(2019), items $\in \{70,100,130,160,200\}$, bins $\in \{2,3,5\}$, five
+instances per configuration. Objective~(1) with the number of opened
+bins in parentheses, followed by the running time; lower objective is
+better. Each entry is the mean over five instances; the MILP ran under a
+3600\,s limit (Table~10's own budget), beam search (BS) under 900\,s.
+V1 and V2 MILP are degenerate on every run: the solver returns the empty
+packing (objective $=$ bins) and declares it optimal.$^{\ddagger}$ V0
+MILP instead exhausts the full 3600\,s on every run with a non-empty,
+non-optimal packing that fails verification.$^{\S}$ BS is feasible on
+all 225 runs and wins the objective in every submodel at every
+size.$^{\P}$}
+\label{tab:results-table10-v0v1v2}
+\begin{tabular}{@{}rr@{\quad}lr@{\quad}lr@{\quad}lr@{\quad}lr@{\quad}lr@{\quad}lr@{}}
+\hline
+\multicolumn{2}{@{}c}{\up Instance} & \multicolumn{2}{c}{V0 MILP$^{\S}$} & \multicolumn{2}{c}{V0 BS} & \multicolumn{2}{c}{V1 MILP$^{\ddagger}$} & \multicolumn{2}{c}{V1 BS} & \multicolumn{2}{c}{V2 MILP$^{\ddagger}$} & \multicolumn{2}{c}{V2 BS} \\
+items & bins & obj (used) & time (s) & obj (used) & time (s) & obj (used) & time (s) & obj (used) & time (s) & obj (used) & time (s) & obj (used) & time (s) \\ \hline\up
+ 70 & 2 & 0.2950(2) & 3600.0 & \textbf{0.1323(2)} & 89.4 & 2.0000(0) & 2.5 & \textbf{0.1664(2)} & 248.7 & 2.0000(0) & 3.3 & \textbf{0.1561(2)} & 316.0 \\
+100 & 2 & 0.3298(2) & 3600.1 & \textbf{0.1019(2)} & 118.8 & 2.0000(0) & 6.0 & \textbf{0.1208(2)} & 356.1 & 2.0000(0) & 7.8 & \textbf{0.1247(2)} & 466.1 \\
+130 & 2 & 0.3492(2) & 3600.1 & \textbf{0.0812(2)} & 123.3 & 2.0000(0) & 10.7 & \textbf{0.1102(2)} & 535.5 & 2.0000(0) & 13.7 & \textbf{0.1182(2)} & 661.6 \\
+160 & 2 & 0.3852(2) & 3600.1 & \textbf{0.0762(2)} & 172.5 & 2.0000(0) & 18.2 & \textbf{0.0993(2)} & 664.0 & 2.0000(0) & 22.2 & \textbf{0.0986(2)} & 799.8 \\
+200 & 2 & 0.4427(2) & 3600.3 & \textbf{0.0558(2)} & 170.8 & 2.0000(0) & 29.5 & \textbf{0.0932(2)} & 767.8 & 2.0000(0) & 36.2 & \textbf{0.1031(2)} & 843.6 \\
+ 70 & 3 & 0.6142(3) & 3600.0 & \textbf{0.2942(3)} & 101.8 & 3.0000(0) & 3.0 & \textbf{0.3251(3)} & 342.7 & 3.0000(0) & 3.8 & \textbf{0.3364(3)} & 405.1 \\
+100 & 3 & 0.6167(3) & 3600.1 & \textbf{0.2300(3)} & 228.3 & 3.0000(0) & 6.9 & \textbf{0.2523(3)} & 651.4 & 3.0000(0) & 8.6 & \textbf{0.2748(3)} & 751.7 \\
+130 & 3 & 0.6471(3) & 3600.1 & \textbf{0.1782(3)} & 338.8 & 3.0000(0) & 12.5 & \textbf{0.2274(3)} & 877.4 & 3.0000(0) & 15.5 & \textbf{0.2708(3)} & 900.0 \\
+160 & 3 & 0.8014(3) & 3600.2 & \textbf{0.1387(3)} & 409.9 & 3.0000(0) & 20.2 & \textbf{0.3041(3)} & 900.0 & 3.0000(0) & 24.8 & \textbf{0.3258(3)} & 900.1 \\
+200 & 3 & 1.0079(3) & 3600.3 & \textbf{0.1314(3)} & 556.9 & 3.0000(0) & 34.2 & \textbf{0.2878(3)} & 900.1 & 3.0000(0) & 40.7 & \textbf{0.2935(3)} & 900.2 \\
+ 70 & 5 & 1.1094(5) & 3600.0 & \textbf{0.7250(5)} & 83.4 & 5.0000(0) & 5.9 & \textbf{0.9004(5)} & 218.9 & 5.0000(0) & 8.0 & \textbf{0.8915(5)} & 277.0 \\
+100 & 5 & 1.0801(5) & 3600.1 & \textbf{0.5597(5)} & 180.5 & 5.0000(0) & 13.6 & \textbf{0.7940(5)} & 456.7 & 5.0000(0) & 18.8 & \textbf{0.7973(5)} & 590.3 \\
+130 & 5 & 1.4368(5) & 3600.2 & \textbf{0.4497(5)} & 351.0 & 5.0000(0) & 27.0 & \textbf{0.6166(5)} & 900.0 & 5.0000(0) & 37.5 & \textbf{0.6923(5)} & 900.1 \\
+160 & 5 & 1.3257(5) & 3600.3 & \textbf{0.3855(5)} & 447.3 & 5.0000(0) & 45.5 & \textbf{0.6441(5)} & 891.3 & 5.0000(0) & 64.5 & \textbf{0.6849(5)} & 900.1 \\
+200 & 5 & 1.7394(5) & 3600.2 & \textbf{0.3365(5)} & 662.0 & 5.0000(0) & 78.4 & \textbf{0.6950(5)} & 900.1 & 5.0000(0) & 98.2 & \textbf{0.7914(5)} & 900.1 \\
+\hline
+\multicolumn{2}{@{}l}{\up mean} & 0.8120(3.33) & 3600.2 & \textbf{0.2584(3.33)} & 269.0 & 3.3333(0.00) & 20.9 & \textbf{0.3758(3.33)} & 640.7 & 3.3333(0.00) & 26.9 & \textbf{0.3973(3.33)} & 700.8 \down\\
+\hline
+\multicolumn{14}{@{}p{0.97\textwidth}@{}}{\footnotesize
+$^{\ddagger}$V1/V2 MILP: on all 75 runs per submodel Gurobi returns
+status \textsc{optimal} with a zero gap, but with every assignment
+variable at zero, that is no item packed and no bin opened, so the
+objective equals the number of bins. Since BS returns verified feasible
+packings of far lower objective on the same instances, the empty packing
+is not optimal; this is the same defect documented for V2 in
+Table~\ref{tab:results-table13-v2} and Table~\ref{tab:results-table11-v2},
+now confirmed to reproduce identically under V1, so the trigger is not
+which of V1's or V2's extra constraints is active. \newline
+$^{\S}$V0 MILP: on all 75 runs the solver hits the 3600\,s
+\textsc{TimeLimit} (never \textsc{optimal}) with a reported gap of
+essentially 100\% and a non-empty packing (20-40 of the items placed, all
+$m$ bins opened). Every one of these packings fails verification, in
+every case on "disallowed rotation" only (V0 checks stability, not
+centre of mass or load bearing), the same rotation-tolerance symptom
+already seen on \textsc{TimeLimit} MILP runs in
+Table~\ref{tab:results-table11-v2} ($n=18$--$26$); it has not been
+root-caused. \newline
+$^{\P}$BS is feasible (0 violations) on all 225 runs across V0, V1 and
+V2, and opens all $m$ bins on every run. It hits its 900\,s cap on 0/75
+V0 runs, 32/75 V1 runs and 40/75 V2 runs, rising with the number of
+active constraints as expected, and never falls back to its greedy
+fallback. \newline
+Times shown for the MILP columns are solve times only; building the
+model took a further 3.6-45.2\,s (V0), 3.6-42.4\,s (V1) and
+4.4-54.8\,s (V2) on average per configuration on top of the figures
+shown.}
+\end{tabular}
+\end{table}
