@@ -2,8 +2,9 @@
 """SLURM array dispatcher for V0 on the single-bin n=18..200 sweep.
 
 Runs WFBF, V0 beam search, and the V0 MILP on the existing t8_n* and
- t12_n* instance groups. WFBF and BS receive 60 seconds; the MILP receives
-3600 seconds. One array task solves one (size, instance, solver) triple.
+t12_n* instance groups. WFBF defaults to uncapped corner-point mode, BS
+receives 60 seconds, and the MILP receives 3600 seconds. One array task
+solves one (size, instance, solver) triple.
 
 Examples:
     python3 main_slurm_t8.py --print-grid
@@ -12,17 +13,14 @@ Examples:
     python3 main_slurm_t8.py --all
     python3 main_slurm_t8.py --summarize
 
-WFBF defaults to the literal beta-grid position enumeration. Since the
-heuristic itself has no time-budget parameter, its 60-second limit is applied
-externally with SIGALRM. Use --wfbf-mode corner for the faster corner-point
-variant; that changes the heuristic and is recorded in report filenames.
+WFBF uses corner-point candidate positions by default. This is a deterministic
+constructive pass and normally completes in milliseconds. Use
+``--wfbf-mode grid`` only when explicitly requesting the literal grid variant.
 """
 
 import argparse
-import contextlib
 import importlib.util
 import json
-import signal
 import socket
 import statistics
 import sys
@@ -41,7 +39,7 @@ TABLE12_SIZES = [100, 110, 120, 130, 140, 150, 160, 170, 180, 190, 200]
 ITEM_COUNTS = TABLE8_SIZES + TABLE12_SIZES
 INSTANCES_PER_SIZE = 10
 SOLVERS = ["wfbf", "bs", "milp"]
-SOLVER_TIME_LIMITS = {"wfbf": 60.0, "bs": 60.0, "milp": 3600.0}
+SOLVER_TIME_LIMITS = {"wfbf": None, "bs": 60.0, "milp": 3600.0}
 SEED = 1
 STABILITY_RULE = "peraxis"
 
@@ -62,29 +60,6 @@ def _load(name, filename):
     return _MODULES[name]
 
 
-class _Timeout(Exception):
-    """Raised when WFBF exceeds its wall-clock budget."""
-
-
-@contextlib.contextmanager
-def time_limited(seconds):
-    """Interrupt a CPU-bound call after seconds on POSIX systems."""
-    if seconds is None or not hasattr(signal, "SIGALRM"):
-        yield False
-        return
-
-    def fire(_signum, _frame):
-        raise _Timeout(f"exceeded {seconds:g}s")
-
-    previous = signal.signal(signal.SIGALRM, fire)
-    signal.setitimer(signal.ITIMER_REAL, seconds)
-    try:
-        yield True
-    finally:
-        signal.setitimer(signal.ITIMER_REAL, 0)
-        signal.signal(signal.SIGALRM, previous)
-
-
 def group_name(n_items):
     return f"t8_n{n_items}" if n_items in TABLE8_SIZES else f"t12_n{n_items}"
 
@@ -103,8 +78,8 @@ def build_grid():
 
 
 def report_path(results_dir, n_items, instance, solver, time_limit,
-                wfbf_mode="grid", grid_step=None):
-    budget = f"t{time_limit:g}s"
+                wfbf_mode="corner", grid_step=None):
+    budget = "uncapped" if time_limit is None else f"t{time_limit:g}s"
     mode = f"-{wfbf_mode}" if solver == "wfbf" else ""
     step = f"-step{grid_step}" if solver == "wfbf" and grid_step is not None else ""
     return results_dir / (f"T8V0-n{n_items}-i{instance:02d}-{solver}"
@@ -112,7 +87,7 @@ def report_path(results_dir, n_items, instance, solver, time_limit,
 
 
 def solve_one(n_items, instance, solver, time_limit, seed=SEED,
-              wfbf_mode="grid", grid_step=None, threads=1):
+              wfbf_mode="corner", grid_step=None, threads=1):
     """Run one V0 solver and return a JSON-serializable experiment record."""
     import mhkp_instances as mi
 
@@ -148,20 +123,14 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
 
     if solver == "wfbf":
         import wfbf
-
-        with time_limited(time_limit) as enforced:
-            record["time_limit_enforced"] = bool(enforced)
-            try:
-                result = wfbf.wfbf(bins, items, mode=wfbf_mode,
-                                   grid_step=grid_step, seed=seed)
-                status = "DONE"
-            except _Timeout:
-                result = None
-                status = "TIMEOUT"
-
-        placements = [] if result is None else [dict(p) for p in result["placements"]]
+        # WFBF corner mode is one deterministic constructive pass; it does
+        # not have an anytime budget. Keep its actual wall-clock duration.
+        result = wfbf.wfbf(bins, items, mode=wfbf_mode,
+                           grid_step=grid_step, seed=seed)
+        status = "DONE"
+        placements = [dict(p) for p in result["placements"]]
         record.update({
-            "objective": None if result is None else result["objective"],
+            "objective": result["objective"],
             "n_packed": len(placements),
             "runtime": time.time() - started,
             "status": status,
@@ -215,8 +184,11 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
 
 def run_task(args, entry):
     n_items, instance, solver = entry
-    time_limit = (args.time_limit if args.time_limit is not None
-                  else SOLVER_TIME_LIMITS[solver])
+    # Corner WFBF is a deterministic pass with no solver time-limit setting.
+    # The global override applies to the timed BS/MILP solvers only.
+    time_limit = (None if solver == "wfbf" else
+                  args.time_limit if args.time_limit is not None else
+                  SOLVER_TIME_LIMITS[solver])
     out = report_path(args.results_dir, n_items, instance, solver, time_limit,
                       args.wfbf_mode, args.grid_step)
     if out.exists() and not args.force:
@@ -270,10 +242,13 @@ def summarize(results_dir, csv_path=None):
         for solver, label in columns:
             mode = None
             if solver == "wfbf":
-                # Summarize only the selected WFBF variant if several are present.
+                # Prefer corner-mode reports; grid is only included if no
+                # corner result exists for this size.
                 variants = [r for r in reports
                             if r["items"] == n_items and r["solver"] == solver]
-                mode = max((r.get("wfbf_mode") for r in variants), key=lambda x: x == "grid", default="grid")
+                available_modes = {r.get("wfbf_mode") for r in variants}
+                mode = "corner" if "corner" in available_modes else (
+                    "grid" if "grid" in available_modes else None)
             records = by.get((n_items, solver, mode), [])
             values = [r for r in records if r.get("objective") is not None]
             avg = lambda field: (statistics.fmean(r[field] for r in values
@@ -313,12 +288,13 @@ def main(argv=None):
     parser.add_argument("--items", type=int, default=None, metavar="N")
     parser.add_argument("--instance", type=int, default=None, metavar="K")
     parser.add_argument("--solver", choices=SOLVERS, default=None)
-    parser.add_argument("--wfbf-mode", choices=("grid", "corner"), default="grid")
+    parser.add_argument("--wfbf-mode", choices=("corner", "grid"), default="corner",
+                        help="WFBF placement mode (default: corner)")
     parser.add_argument("--grid-step", type=int, default=None,
                         help="optional WFBF grid spacing; default is beta")
     parser.add_argument("--results-dir", type=Path, default=RESULTS_DIR)
     parser.add_argument("--time-limit", type=float, default=None,
-                        help="override the method default (WFBF/BS 60s; MILP 3600s)")
+                        help="override BS/MILP defaults (60s/3600s); corner WFBF is uncapped")
     parser.add_argument("--num_cpu", type=int, default=1)
     parser.add_argument("--seed", type=int, default=SEED)
     parser.add_argument("--force", action="store_true")
@@ -337,7 +313,9 @@ def main(argv=None):
         print(f"{len(grid)} tasks: {len(ITEM_COUNTS)} sizes x "
               f"{INSTANCES_PER_SIZE} instances x {len(SOLVERS)} methods")
         print("time limits: " + ", ".join(
-            f"{solver}={limit:g}s" for solver, limit in SOLVER_TIME_LIMITS.items()))
+            f"{solver}={'uncapped' if limit is None else f'{limit:g}s'}"
+            for solver, limit in SOLVER_TIME_LIMITS.items()))
+        print(f"WFBF mode: {args.wfbf_mode}")
         print(f"\\n#SBATCH --array=0-{len(grid) - 1}")
         return 0
 
