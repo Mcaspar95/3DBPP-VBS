@@ -1,10 +1,9 @@
 % Results for submodel V0 on the single-bin Table 8/12 size sweep.
 % WFBF corner values were computed for all ten instances at every size.
-% BS/MILP values are aggregated from results_table8_V0/ as currently available.
+% BS/MILP values are means over all ten uploaded reports per size.
 % Objective (1): lower is better. WFBF uses corner-point mode, not grid mode.
 % The six result columns are WFBF objective and time, BS objective and time,
 % and MILP objective and time.
-% The BS/MILP dataset is incomplete: only 512 of 1020 expected reports are present.
 
 \providecommand{\up}{\rule{0pt}{2.6ex}}
 \providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
@@ -18,9 +17,8 @@ and beam search (BS) with a 60\,s limit. WFBF uses corner-point mode,
 which is a single deterministic pass and is not time limited. WFBF values
 are means over ten instances per size; its reported runtimes were measured
 locally and are not cluster timings. BS and MILP values are means over
-available reports in \texttt{results\_table8\_V0}. Results are incomplete:
-the MILP has no reports for $n\geq35$, BS has no reports for $n\geq70$,
-and only eight MILP runs at $n=30$ and two BS runs at $n=65$ are available.}
+all ten reports per size in \texttt{results\_table8\_V0}. All MILP runs
+reached the time limit and returned feasible solutions.}
 \label{tab:results-table8-v0}
 \begin{tabular}{@{}r@{\quad}rr@{\quad}rr@{\quad}rr@{}}
 \hline
@@ -41,28 +39,28 @@ and only eight MILP runs at $n=30$ and two BS runs at $n=65$ are available.}
 27  & 0.1853 & 0.0004 & 0.0890 & 7.48 & 0.1006 & 3600.0 \\
 28  & 0.2162 & 0.0004 & 0.0905 & 8.61 & 0.1118 & 3600.0 \\
 29  & 0.2451 & 0.0004 & 0.0798 & 7.95 & 0.0943 & 3600.0 \\
-30  & 0.1839 & 0.0004 & 0.0818 & 8.59 & 0.0942 & 3600.0 \\
-35  & 0.1787 & 0.0005 & 0.0679 & 12.29 & -- & -- \\
-40  & 0.1817 & 0.0006 & 0.0637 & 15.48 & -- & -- \\
-45  & 0.1916 & 0.0006 & 0.0641 & 20.71 & -- & -- \\
-50  & 0.1387 & 0.0007 & 0.0546 & 20.63 & -- & -- \\
-55  & 0.1359 & 0.0008 & 0.0495 & 22.70 & -- & -- \\
-60  & 0.1432 & 0.0009 & 0.0418 & 27.22 & -- & -- \\
-65  & 0.1425 & 0.0010 & 0.0528 & 23.65 & -- & -- \\
-70  & 0.1642 & 0.0011 & -- & -- & -- & -- \\
-80  & 0.1390 & 0.0013 & -- & -- & -- & -- \\
-90  & 0.1299 & 0.0015 & -- & -- & -- & -- \\
-100 & 0.1538 & 0.0015 & -- & -- & -- & -- \\
-110 & 0.1518 & 0.0017 & -- & -- & -- & -- \\
-120 & 0.1482 & 0.0019 & -- & -- & -- & -- \\
-130 & 0.1357 & 0.0021 & -- & -- & -- & -- \\
-140 & 0.1517 & 0.0021 & -- & -- & -- & -- \\
-150 & 0.1031 & 0.0021 & -- & -- & -- & -- \\
-160 & 0.1113 & 0.0023 & -- & -- & -- & -- \\
-170 & 0.1082 & 0.0021 & -- & -- & -- & -- \\
-180 & 0.0950 & 0.0020 & -- & -- & -- & -- \\
-190 & 0.0881 & 0.0020 & -- & -- & -- & -- \\
-200 & 0.1312 & 0.0021 & -- & -- & -- & -- \\
+30  & 0.1839 & 0.0004 & 0.0818 & 8.59 & 0.0999 & 3600.0 \\
+35  & 0.1787 & 0.0005 & 0.0679 & 12.29 & 0.1007 & 3600.0 \\
+40  & 0.1817 & 0.0006 & 0.0637 & 15.48 & 0.0866 & 3600.0 \\
+45  & 0.1916 & 0.0006 & 0.0641 & 20.71 & 0.0966 & 3600.0 \\
+50  & 0.1387 & 0.0007 & 0.0546 & 20.63 & 0.0854 & 3600.0 \\
+55  & 0.1359 & 0.0008 & 0.0495 & 22.70 & 0.1047 & 3600.0 \\
+60  & 0.1432 & 0.0009 & 0.0418 & 27.22 & 0.1113 & 3600.0 \\
+65  & 0.1425 & 0.0010 & 0.0441 & 22.37 & 0.0905 & 3600.0 \\
+70  & 0.1642 & 0.0011 & 0.0508 & 30.22 & 0.0956 & 3600.1 \\
+80  & 0.1390 & 0.0013 & 0.0395 & 35.36 & 0.1098 & 3600.0 \\
+90  & 0.1299 & 0.0015 & 0.0338 & 34.18 & 0.0978 & 3600.0 \\
+100 & 0.1538 & 0.0015 & 0.0345 & 35.68 & 0.1129 & 3600.1 \\
+110 & 0.1518 & 0.0017 & 0.0309 & 40.50 & 0.1145 & 3600.1 \\
+120 & 0.1482 & 0.0019 & 0.0306 & 42.13 & 0.1037 & 3600.1 \\
+130 & 0.1357 & 0.0021 & 0.0292 & 42.10 & 0.1349 & 3600.1 \\
+140 & 0.1517 & 0.0021 & 0.0310 & 45.96 & 0.1154 & 3600.2 \\
+150 & 0.1031 & 0.0021 & 0.0287 & 47.32 & 0.1344 & 3600.2 \\
+160 & 0.1113 & 0.0023 & 0.0269 & 56.59 & 0.1300 & 3600.1 \\
+170 & 0.1082 & 0.0021 & 0.0252 & 50.89 & 0.1231 & 3600.2 \\
+180 & 0.0950 & 0.0020 & 0.0248 & 52.02 & 0.1330 & 3600.2 \\
+190 & 0.0881 & 0.0020 & 0.0256 & 56.11 & 0.1616 & 3600.2 \\
+200 & 0.1312 & 0.0021 & 0.0251 & 58.22 & 0.1291 & 3600.2 \\
 \hline
 \end{tabular}
 \end{table}

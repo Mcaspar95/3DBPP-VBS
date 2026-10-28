@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""SLURM array dispatcher for V0 on the single-bin n=18..200 sweep.
+"""SLURM array dispatcher for V1 on the single-bin n=18..200 sweep.
 
-Runs WFBF, V0 beam search, and the V0 MILP on the existing t8_n* and
+Runs WFBF, V1 beam search, and the V1 MILP on the existing t8_n* and
 t12_n* instance groups. WFBF defaults to uncapped corner-point mode, BS
 receives 60 seconds, and the MILP receives 3600 seconds. One array task
 solves one (size, instance, solver) triple.
@@ -31,7 +31,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 INSTANCE_ROOT = ROOT / "MHKP"
-RESULTS_DIR = ROOT / "results_table8_V0"
+RESULTS_DIR = ROOT / "results_table8_V1"
+ALPHA = 0.8  # pyramid base fraction, same as main_slurm.py (paper's suggested default)
 
 TABLE8_SIZES = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
                 35, 40, 45, 50, 55, 60, 65, 70, 80, 90]
@@ -82,13 +83,13 @@ def report_path(results_dir, n_items, instance, solver, time_limit,
     budget = "uncapped" if time_limit is None else f"t{time_limit:g}s"
     mode = f"-{wfbf_mode}" if solver == "wfbf" else ""
     step = f"-step{grid_step}" if solver == "wfbf" and grid_step is not None else ""
-    return results_dir / (f"T8V0-n{n_items}-i{instance:02d}-{solver}"
+    return results_dir / (f"T8V1-n{n_items}-i{instance:02d}-{solver}"
                           f"{mode}{step}-{budget}.json")
 
 
 def solve_one(n_items, instance, solver, time_limit, seed=SEED,
               wfbf_mode="corner", grid_step=None, threads=1):
-    """Run one V0 solver and return a JSON-serializable experiment record."""
+    """Run one V1 solver and return a JSON-serializable experiment record."""
     import mhkp_instances as mi
 
     path = instance_path(n_items, instance)
@@ -97,14 +98,16 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
             f"missing instance {path}; generate the t8/t12 instance groups first")
 
     bins, items = mi.read_instance(path)
-    BS0 = _load("mhkp_v0_bs", "MHKP-V0-BS.py")
-    sa = BS0._sa
+    BS1 = _load("mhkp_v1_bs", "MHKP-V1-BS.py")
+    sa = BS1._sa
     sa.STABILITY_RULE = STABILITY_RULE
     inst = sa.load_instance(str(path))
+    BS1.attach_v1_data(inst, bins, items, seed=seed, alpha=ALPHA)
 
     record = {
         "table": 8 if n_items in TABLE8_SIZES else 12,
-        "submodel": "V0",
+        "submodel": "V1",
+        "alpha": ALPHA,
         "items": n_items,
         "bins": 1,
         "instance": instance,
@@ -139,8 +142,8 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
         })
 
     elif solver == "bs":
-        result = BS0.beam_search(inst, time_limit=time_limit, seed=seed,
-                                 rule=STABILITY_RULE)
+        result = BS1.beam_search_v1_auto(inst, time_limit=time_limit,
+                                         seed=seed, rule=STABILITY_RULE)
         placements = result["placements"]
         record.update({
             "objective": result["wasted"],
@@ -148,15 +151,19 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
             "runtime": result["runtime"],
             "rollouts": result["rollouts"],
             "levels": result["levels"],
+            "fell_back": bool(result.get("fell_back")),
             "status": "DONE",
         })
 
     elif solver == "milp":
-        V0 = _load("mhkp_v0_milp", "mhkp_v0_milp.py")
-        result = V0.solve(bins, items, time_limit=time_limit, threads=threads)
+        V1 = _load("mhkp_v1_milp", "mhkp_v1_milp.py")
+        result = V1.solve(bins, items, time_limit=time_limit, threads=threads,
+                          seed=seed, alpha=ALPHA)
         # The MILP follows the paper's axis convention (z vertical), while
         # the shared independent verifier uses the SA/BS frame (y vertical).
-        placements = V0.solution_to_sa_frame(result["placements"])
+        placements = V1.V0.solution_to_sa_frame(result["placements"])
+        com_violations = (V1.check_com(bins, items, result)
+                          if result["placements"] else [])
         record.update({
             "objective": result["objective"],
             "bound": result["bound"],
@@ -172,7 +179,12 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
     else:
         raise ValueError(f"unknown solver {solver!r}")
 
-    violations = sa.verify(inst, placements, stability=True, rule=STABILITY_RULE)
+    if solver == "milp":
+        violations = list(sa.verify(inst, placements, stability=True,
+                                    rule=STABILITY_RULE)) + com_violations
+    else:
+        # WFBF ignores the CoM constraints, so its V1 violations are reported.
+        violations = BS1.verify_v1(inst, placements, rule=STABILITY_RULE)
     record["violations"] = len(violations)
     record["violation_detail"] = violations[:10]
     record["feasible"] = (None if record.get("objective") is None
@@ -218,7 +230,7 @@ def summarize(results_dir, csv_path=None):
         return 1
 
     reports = []
-    for path in sorted(results_dir.glob("T8V0-*.json")):
+    for path in sorted(results_dir.glob("T8V1-*.json")):
         try:
             reports.append(json.loads(path.read_text()))
         except json.JSONDecodeError:
@@ -234,7 +246,7 @@ def summarize(results_dir, csv_path=None):
 
     columns = [("wfbf", "WFBF"), ("bs", "BS"), ("milp", "MILP")]
     rows = []
-    print(f"V0 results: {len(reports)} reports from {results_dir.name}")
+    print(f"V1 results: {len(reports)} reports from {results_dir.name}")
     print(f"{'n':>5} | {'method':<7} {'objective':>12} {'time (s)':>10} "
           f"{'gap %':>9} {'viol':>6} {'runs':>5}")
     print("-" * 68)
@@ -282,7 +294,7 @@ def summarize(results_dir, csv_path=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="SLURM dispatcher for V0 on the n=18..200 single-bin sweep.")
+        description="SLURM dispatcher for V1 on the n=18..200 single-bin sweep.")
     parser.add_argument("--id", type=int, default=None,
                         help="zero-based SLURM_ARRAY_TASK_ID")
     parser.add_argument("--items", type=int, default=None, metavar="N")
