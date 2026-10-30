@@ -1,0 +1,29 @@
+{
+  "table": 8,
+  "submodel": "V1",
+  "alpha": 0.8,
+  "items": 35,
+  "bins": 1,
+  "instance": 8,
+  "instance_file": "MHKP/t8_n35/t8_n35_instance08.txt",
+  "solver": "wfbf",
+  "wfbf_mode": "corner",
+  "time_limit": null,
+  "seed": 1,
+  "stability_rule": "peraxis",
+  "host": "node836",
+  "started": "2026-10-29T15:36:32+00:00",
+  "objective": 0.17154976851860637,
+  "n_packed": 8,
+  "runtime": 0.001955747604370117,
+  "status": "DONE",
+  "grid_step": null,
+  "beta": 1,
+  "violations": 1,
+  "violation_detail": [
+    "item 3 floats in bin 0"
+  ],
+  "feasible": false,
+  "wall_time": 0.0020363330841064453,
+  "finished": "2026-10-29T15:36:32+00:00"
+}

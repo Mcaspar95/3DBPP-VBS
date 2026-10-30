@@ -1,0 +1,29 @@
+{
+  "table": 12,
+  "submodel": "V1",
+  "alpha": 0.8,
+  "items": 100,
+  "bins": 1,
+  "instance": 4,
+  "instance_file": "MHKP/t12_n100/t12_n100_instance04.txt",
+  "solver": "wfbf",
+  "wfbf_mode": "corner",
+  "time_limit": null,
+  "seed": 1,
+  "stability_rule": "peraxis",
+  "host": "node832",
+  "started": "2026-10-29T17:41:17+00:00",
+  "objective": 0.21852141203714895,
+  "n_packed": 7,
+  "runtime": 0.004128217697143555,
+  "status": "DONE",
+  "grid_step": null,
+  "beta": 1,
+  "violations": 1,
+  "violation_detail": [
+    "bin 0: CoM (48.74, 49.60, 53.24) outside the pyramid (vertex 60.0, 60.0, 60.0, xi 96.0)"
+  ],
+  "feasible": false,
+  "wall_time": 0.004254817962646484,
+  "finished": "2026-10-29T17:41:17+00:00"
+}

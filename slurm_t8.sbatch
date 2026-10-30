@@ -1,19 +1,19 @@
 #!/bin/bash -l
-#SBATCH -J MHKP-V0-T8
-# V0 on the single-bin n=18..200 sweep: 34 sizes x 10 instances x 3 solvers
+#SBATCH -J MHKP-V2-T8
+# V2 on the single-bin n=18..200 sweep: 34 sizes x 10 instances x 3 solvers
 #   = 1020 array tasks. Must match main_slurm_t8.py --print-grid.
 #SBATCH --array=0-1019
 #SBATCH --ntasks=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #
-# Memory for the largest V0 MILP (n=200). V0 has O(n^2) variables and
-# constraints; WFBF and BS use much less, but this is a heterogeneous array.
+# Memory for the largest V2 MILP (n=200). WFBF and BS use much less, but
+# this is a heterogeneous array.
 #SBATCH --mem=16G
 #
 # Per-task wall time: the MILP solve budget is 3600 s, plus extra margin for
-# model construction and solver startup. WFBF and BS each have a 60 s budget.
-# WFBF's external SIGALRM limit is enforced by main_slurm_t8.py.
+# model construction and solver startup. BS has a 60 s budget; corner-mode
+# WFBF is a deterministic uncapped constructive pass.
 #SBATCH --time=01:30:00
 #
 #SBATCH -o logs/%x-%A-%a.out
@@ -40,11 +40,11 @@ mkdir -p logs
 if [ "${SLURM_ARRAY_TASK_ID}" = "0" ]; then
     SUMMARY_CMD="source /home/mcaspar/3DPCPTP/bin/activate; \
 python3 ${SLURM_SUBMIT_DIR}/main_slurm_t8.py --summarize \
---csv ${SLURM_SUBMIT_DIR}/results_table8_V0.csv"
+--csv ${SLURM_SUBMIT_DIR}/results_table8_V2.csv"
     sbatch --dependency=afterany:${SLURM_ARRAY_JOB_ID} \
-           --job-name=MHKP-V0-T8-summary \
+           --job-name=MHKP-V2-T8-summary \
            --ntasks=1 --cpus-per-task=1 --mem=2G --time=00:15:00 \
-           --output=logs/MHKP-V0-T8-summary-%j.out \
+           --output=logs/MHKP-V2-T8-summary-%j.out \
            --wrap="${SUMMARY_CMD}" \
         || echo "summary job not submitted; once the array is done run: \
 python3 main_slurm_t8.py --summarize"
@@ -53,4 +53,4 @@ fi
 python3 ${SLURM_SUBMIT_DIR}/main_slurm_t8.py \
     --id "${SLURM_ARRAY_TASK_ID}" \
     --num_cpu "${SLURM_CPUS_PER_TASK}" \
-    --results-dir "${SLURM_SUBMIT_DIR}/results_table8_V0"
+    --results-dir "${SLURM_SUBMIT_DIR}/results_table8_V2"

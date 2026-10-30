@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""SLURM array dispatcher for V1 on the single-bin n=18..200 sweep.
+"""SLURM array dispatcher for V2 on the single-bin n=18..200 sweep.
 
-Runs WFBF, V1 beam search, and the V1 MILP on the existing t8_n* and
+Runs WFBF, V2 beam search, and the V2 MILP on the existing t8_n* and
 t12_n* instance groups. WFBF defaults to uncapped corner-point mode, BS
-receives 60 seconds, and the MILP receives 3600 seconds. One array task
-solves one (size, instance, solver) triple.
+receives 60 seconds, and the MILP receives 3600 seconds. All results are
+verified against the full V2 constraint set. One array task solves one
+(size, instance, solver) triple.
 
 Examples:
     python3 main_slurm_t8.py --print-grid
@@ -31,8 +32,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 INSTANCE_ROOT = ROOT / "MHKP"
-RESULTS_DIR = ROOT / "results_table8_V1"
+RESULTS_DIR = ROOT / "results_table8_V2"
 ALPHA = 0.8  # pyramid base fraction, same as main_slurm.py (paper's suggested default)
+LOAD_FACTOR = 3.0  # Lambda_i = 3 * Omega_i, the paper's equation (18)
+STABILITY_RULE = "peraxis"
 
 TABLE8_SIZES = [18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30,
                 35, 40, 45, 50, 55, 60, 65, 70, 80, 90]
@@ -83,13 +86,14 @@ def report_path(results_dir, n_items, instance, solver, time_limit,
     budget = "uncapped" if time_limit is None else f"t{time_limit:g}s"
     mode = f"-{wfbf_mode}" if solver == "wfbf" else ""
     step = f"-step{grid_step}" if solver == "wfbf" and grid_step is not None else ""
-    return results_dir / (f"T8V1-n{n_items}-i{instance:02d}-{solver}"
+    return results_dir / (f"T8V2-n{n_items}-i{instance:02d}-{solver}"
                           f"{mode}{step}-{budget}.json")
 
 
 def solve_one(n_items, instance, solver, time_limit, seed=SEED,
-              wfbf_mode="corner", grid_step=None, threads=1):
-    """Run one V1 solver and return a JSON-serializable experiment record."""
+              wfbf_mode="corner", grid_step=None, threads=1, alpha=ALPHA,
+              load_factor=LOAD_FACTOR):
+    """Run one solver and return a JSON-serializable V2 experiment record."""
     import mhkp_instances as mi
 
     path = instance_path(n_items, instance)
@@ -98,16 +102,19 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
             f"missing instance {path}; generate the t8/t12 instance groups first")
 
     bins, items = mi.read_instance(path)
-    BS1 = _load("mhkp_v1_bs", "MHKP-V1-BS.py")
-    sa = BS1._sa
+    BS2 = _load("mhkp_v2_bs", "MHKP-V2-BS.py")
+    V2 = _load("mhkp_v2_milp", "mhkp_v2_milp.py")
+    sa = BS2._sa
     sa.STABILITY_RULE = STABILITY_RULE
     inst = sa.load_instance(str(path))
-    BS1.attach_v1_data(inst, bins, items, seed=seed, alpha=ALPHA)
+    BS2.attach_v2_data(inst, bins, items, seed=seed, alpha=alpha,
+                       factor=load_factor)
 
     record = {
         "table": 8 if n_items in TABLE8_SIZES else 12,
-        "submodel": "V1",
-        "alpha": ALPHA,
+        "submodel": "V2",
+        "alpha": alpha,
+        "load_factor": load_factor,
         "items": n_items,
         "bins": 1,
         "instance": instance,
@@ -132,6 +139,8 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
                            grid_step=grid_step, seed=seed)
         status = "DONE"
         placements = [dict(p) for p in result["placements"]]
+        for placement in placements:
+            placement.setdefault("reflected", 0)
         record.update({
             "objective": result["objective"],
             "n_packed": len(placements),
@@ -142,7 +151,7 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
         })
 
     elif solver == "bs":
-        result = BS1.beam_search_v1_auto(inst, time_limit=time_limit,
+        result = BS2.beam_search_v2_auto(inst, time_limit=time_limit,
                                          seed=seed, rule=STABILITY_RULE)
         placements = result["placements"]
         record.update({
@@ -156,14 +165,11 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
         })
 
     elif solver == "milp":
-        V1 = _load("mhkp_v1_milp", "mhkp_v1_milp.py")
-        result = V1.solve(bins, items, time_limit=time_limit, threads=threads,
-                          seed=seed, alpha=ALPHA)
-        # The MILP follows the paper's axis convention (z vertical), while
-        # the shared independent verifier uses the SA/BS frame (y vertical).
-        placements = V1.V0.solution_to_sa_frame(result["placements"])
-        com_violations = (V1.check_com(bins, items, result)
-                          if result["placements"] else [])
+        result = V2.solve(bins, items, time_limit=time_limit, threads=threads,
+                          seed=seed, alpha=alpha, factor=load_factor)
+        placements = V2.V0.solution_to_sa_frame(result["placements"])
+        for placement, milp_placement in zip(placements, result["placements"]):
+            placement["reflected"] = milp_placement.get("reflected", 0)
         record.update({
             "objective": result["objective"],
             "bound": result["bound"],
@@ -179,16 +185,11 @@ def solve_one(n_items, instance, solver, time_limit, seed=SEED,
     else:
         raise ValueError(f"unknown solver {solver!r}")
 
-    if solver == "milp":
-        violations = list(sa.verify(inst, placements, stability=True,
-                                    rule=STABILITY_RULE)) + com_violations
-    else:
-        # WFBF ignores the CoM constraints, so its V1 violations are reported.
-        violations = BS1.verify_v1(inst, placements, rule=STABILITY_RULE)
+    violations = BS2.verify_v2(inst, placements, rule=STABILITY_RULE)
     record["violations"] = len(violations)
     record["violation_detail"] = violations[:10]
-    record["feasible"] = (None if record.get("objective") is None
-                          else not violations)
+    record["feasible_V2"] = (None if record.get("objective") is None
+                             else not violations)
     record["wall_time"] = time.time() - started
     record["finished"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     return record
@@ -210,7 +211,8 @@ def run_task(args, entry):
     args.results_dir.mkdir(parents=True, exist_ok=True)
     record = solve_one(n_items, instance, solver, time_limit, seed=args.seed,
                        wfbf_mode=args.wfbf_mode, grid_step=args.grid_step,
-                       threads=args.num_cpu)
+                       threads=args.num_cpu, alpha=args.alpha,
+                       load_factor=args.load_factor)
     tmp = out.with_suffix(".json.part")
     tmp.write_text(json.dumps(record, indent=2))
     tmp.replace(out)
@@ -230,7 +232,7 @@ def summarize(results_dir, csv_path=None):
         return 1
 
     reports = []
-    for path in sorted(results_dir.glob("T8V1-*.json")):
+    for path in sorted(results_dir.glob("T8V2-*.json")):
         try:
             reports.append(json.loads(path.read_text()))
         except json.JSONDecodeError:
@@ -246,7 +248,7 @@ def summarize(results_dir, csv_path=None):
 
     columns = [("wfbf", "WFBF"), ("bs", "BS"), ("milp", "MILP")]
     rows = []
-    print(f"V1 results: {len(reports)} reports from {results_dir.name}")
+    print(f"V2 results: {len(reports)} reports from {results_dir.name}")
     print(f"{'n':>5} | {'method':<7} {'objective':>12} {'time (s)':>10} "
           f"{'gap %':>9} {'viol':>6} {'runs':>5}")
     print("-" * 68)
@@ -294,7 +296,7 @@ def summarize(results_dir, csv_path=None):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="SLURM dispatcher for V1 on the n=18..200 single-bin sweep.")
+        description="SLURM dispatcher for V2 on the n=18..200 single-bin sweep.")
     parser.add_argument("--id", type=int, default=None,
                         help="zero-based SLURM_ARRAY_TASK_ID")
     parser.add_argument("--items", type=int, default=None, metavar="N")
@@ -309,6 +311,10 @@ def main(argv=None):
                         help="override BS/MILP defaults (60s/3600s); corner WFBF is uncapped")
     parser.add_argument("--num_cpu", type=int, default=1)
     parser.add_argument("--seed", type=int, default=SEED)
+    parser.add_argument("--alpha", type=float, default=ALPHA,
+                        help=f"pyramid base fraction (default {ALPHA})")
+    parser.add_argument("--load-factor", type=float, default=LOAD_FACTOR,
+                        help=f"load-bearing multiplier (default {LOAD_FACTOR})")
     parser.add_argument("--force", action="store_true")
     parser.add_argument("--all", action="store_true",
                         help="run all selected grid entries sequentially")
