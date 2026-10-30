@@ -1,0 +1,29 @@
+{
+  "table": 10,
+  "submodel": "V0",
+  "method": "bs",
+  "config": "200x5",
+  "items": 200,
+  "bins_available": 5,
+  "instance": 1,
+  "instance_file": "MHKP/t10_n200_b5/t10_n200_b5_instance01.txt",
+  "time_limit": 900.0,
+  "seed": 1,
+  "stability_rule": "peraxis",
+  "host": "node833",
+  "started": "2026-10-30T15:27:57+00:00",
+  "objective": 0.3482055155973877,
+  "used_bins": 5,
+  "n_packed": 42,
+  "runtime": 736.9402093887329,
+  "status": "DONE",
+  "violations": 0,
+  "violation_detail": [],
+  "feasible": true,
+  "wall_time": 736.9452149868011,
+  "solver_details": {
+    "rollouts": 17532,
+    "levels": 43
+  },
+  "finished": "2026-10-30T15:40:14+00:00"
+}

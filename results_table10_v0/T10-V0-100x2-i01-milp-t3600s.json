@@ -1,0 +1,32 @@
+{
+  "table": 10,
+  "submodel": "V0",
+  "method": "milp",
+  "config": "100x2",
+  "items": 100,
+  "bins_available": 2,
+  "instance": 1,
+  "instance_file": "MHKP/t10_n100_b2/t10_n100_b2_instance01.txt",
+  "time_limit": 3600.0,
+  "seed": 1,
+  "stability_rule": "peraxis",
+  "host": "node843",
+  "started": "2026-10-30T15:22:12+00:00",
+  "objective": 0.34441792052486786,
+  "used_bins": 2,
+  "n_packed": 29,
+  "runtime": 3600.0553510189056,
+  "status": "TIME_LIMIT",
+  "violations": 0,
+  "violation_detail": [],
+  "feasible": true,
+  "wall_time": 3607.8191106319427,
+  "solver_details": {
+    "bound": 4.440892098500626e-16,
+    "gap": 0.9999999999999987,
+    "build_time": 7.393365859985352,
+    "n_vars": 91102,
+    "n_constrs": 284454
+  },
+  "finished": "2026-10-30T16:22:20+00:00"
+}
