@@ -1,0 +1,30 @@
+{
+  "table": 8,
+  "submodel": "V2",
+  "alpha": 0.8,
+  "load_factor": 3.0,
+  "items": 21,
+  "bins": 1,
+  "instance": 7,
+  "instance_file": "MHKP/t8_n21/t8_n21_instance07.txt",
+  "solver": "wfbf",
+  "wfbf_mode": "corner",
+  "time_limit": null,
+  "seed": 1,
+  "stability_rule": "peraxis",
+  "host": "node839",
+  "started": "2026-10-30T08:57:45+00:00",
+  "objective": 0.3155162037038653,
+  "n_packed": 14,
+  "runtime": 0.005083560943603516,
+  "status": "DONE",
+  "grid_step": null,
+  "beta": 1,
+  "violations": 1,
+  "violation_detail": [
+    "bin 0, item 12: bears 0.3 > capacity 0.2"
+  ],
+  "feasible_V2": false,
+  "wall_time": 0.005272865295410156,
+  "finished": "2026-10-30T08:57:45+00:00"
+}

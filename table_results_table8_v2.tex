@@ -1,0 +1,64 @@
+% Results for submodel V2 across the complete single-bin Table 8/12 size sweep.
+% Means are computed from all ten reports per size and solver; lower objective is better.
+% WFBF uses corner-point mode, BS has a 60 s limit, and MILP has a 3600 s limit.
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\caption{Submodel V2 on the single-bin Table 8/12 size sweep, with ten
+instances per size. Objective~(1), lower is better. Beam search (BS) has a
+60\,s limit and MILP has a 3600\,s limit. WFBF uses corner-point mode, a
+single deterministic pass without a time limit. All entries are means over
+ten reports per size and solver. All MILP runs reached the time limit and
+returned incumbents, so their objectives are not guaranteed optimal. WFBF's
+objective is reported even when its packing violates V2 constraints; 39 of
+the 340 WFBF packings had at least one reported violation. The MILP
+incumbents also had reported V2 violations in 114 of 340 runs.}
+\label{tab:results-table8-v2}
+\begin{tabular}{@{}r@{\quad}rr@{\quad}rr@{\quad}rr@{}}
+\hline
+\multicolumn{1}{@{}c}{\up{}$n$}
+& WFBF-corner & WFBF-corner time (s)
+& BS & BS time (s)
+& MILP & MILP time (s) \\
+\hline\up
+18  & 0.2537 & 0.0026 & 0.1241 & 7.07  & 0.3813 & 3600.00 \\
+19  & 0.2342 & 0.0027 & 0.1317 & 8.15  & 0.3818 & 3600.00 \\
+20  & 0.2496 & 0.0018 & 0.1425 & 10.50 & 0.3762 & 3600.00 \\
+21  & 0.2421 & 0.0023 & 0.1157 & 11.03 & 0.3650 & 3600.01 \\
+22  & 0.2053 & 0.0019 & 0.1046 & 13.66 & 0.3523 & 3600.01 \\
+23  & 0.2246 & 0.0021 & 0.1043 & 13.91 & 0.3608 & 3600.01 \\
+24  & 0.2227 & 0.0023 & 0.1089 & 15.85 & 0.3637 & 3600.01 \\
+25  & 0.1963 & 0.0020 & 0.0925 & 15.68 & 0.3609 & 3600.01 \\
+26  & 0.1958 & 0.0020 & 0.1023 & 21.84 & 0.3708 & 3600.01 \\
+27  & 0.1853 & 0.0020 & 0.0967 & 21.00 & 0.3549 & 3600.01 \\
+28  & 0.2162 & 0.0023 & 0.0980 & 26.03 & 0.3725 & 3600.01 \\
+29  & 0.2451 & 0.0020 & 0.0840 & 25.47 & 0.3598 & 3600.01 \\
+30  & 0.1839 & 0.0024 & 0.0904 & 25.95 & 0.3584 & 3600.01 \\
+35  & 0.1787 & 0.0028 & 0.0832 & 33.07 & 0.3454 & 3600.02 \\
+40  & 0.1817 & 0.0027 & 0.0740 & 33.12 & 0.3442 & 3600.02 \\
+45  & 0.1916 & 0.0027 & 0.0687 & 39.95 & 0.3413 & 3600.02 \\
+50  & 0.1387 & 0.0026 & 0.0700 & 45.69 & 0.3469 & 3600.02 \\
+55  & 0.1359 & 0.0030 & 0.0577 & 47.07 & 0.3293 & 3600.03 \\
+60  & 0.1432 & 0.0029 & 0.0503 & 50.12 & 0.3341 & 3600.03 \\
+65  & 0.1425 & 0.0031 & 0.0539 & 47.94 & 0.3346 & 3600.04 \\
+70  & 0.1642 & 0.0031 & 0.0591 & 58.29 & 0.3432 & 3600.04 \\
+80  & 0.1390 & 0.0030 & 0.0493 & 57.69 & 0.3371 & 3600.03 \\
+90  & 0.1299 & 0.0035 & 0.0434 & 59.28 & 0.3301 & 3600.05 \\
+100 & 0.1538 & 0.0039 & 0.0477 & 59.90 & 0.3341 & 3600.07 \\
+110 & 0.1518 & 0.0041 & 0.0442 & 60.03 & 0.3347 & 3600.10 \\
+120 & 0.1482 & 0.0043 & 0.0387 & 60.04 & 0.3297 & 3600.12 \\
+130 & 0.1357 & 0.0047 & 0.0387 & 60.02 & 0.3370 & 3600.12 \\
+140 & 0.1517 & 0.0047 & 0.0403 & 60.02 & 0.3323 & 3600.14 \\
+150 & 0.1031 & 0.0050 & 0.0356 & 60.03 & 0.3444 & 3600.23 \\
+160 & 0.1113 & 0.0059 & 0.0339 & 60.04 & 0.3466 & 3600.19 \\
+170 & 0.1082 & 0.0057 & 0.0374 & 60.03 & 0.3375 & 3600.19 \\
+180 & 0.0950 & 0.0057 & 0.0345 & 60.03 & 0.3374 & 3600.24 \\
+190 & 0.0881 & 0.0063 & 0.0349 & 60.04 & 0.3451 & 3600.25 \\
+200 & 0.1312 & 0.0064 & 0.0344 & 60.03 & 0.3510 & 3600.20 \\
+\hline
+\end{tabular}
+\end{table}

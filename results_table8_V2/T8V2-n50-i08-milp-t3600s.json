@@ -1,0 +1,33 @@
+{
+  "table": 8,
+  "submodel": "V2",
+  "alpha": 0.8,
+  "load_factor": 3.0,
+  "items": 50,
+  "bins": 1,
+  "instance": 8,
+  "instance_file": "MHKP/t8_n50/t8_n50_instance08.txt",
+  "solver": "milp",
+  "wfbf_mode": null,
+  "time_limit": 3600.0,
+  "seed": 1,
+  "stability_rule": "peraxis",
+  "host": "node825",
+  "started": "2026-10-30T11:01:01+00:00",
+  "objective": 0.39149594907427443,
+  "bound": 4.440892098500626e-16,
+  "gap": 0.9999999999999989,
+  "n_packed": 5,
+  "runtime": 3600.0205500125885,
+  "build_time": 2.1482110023498535,
+  "status": "TIME_LIMIT",
+  "n_vars": 25801,
+  "n_constrs": 81582,
+  "violations": 1,
+  "violation_detail": [
+    "bin 0: CoM (52.31, 37.70, 47.66) outside the pyramid (vertex 60.0, 60.0, 60.0, xi 96.0)"
+  ],
+  "feasible_V2": false,
+  "wall_time": 3602.2519590854645,
+  "finished": "2026-10-30T12:01:03+00:00"
+}
