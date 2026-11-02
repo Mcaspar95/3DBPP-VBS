@@ -1,46 +1,59 @@
-% V0 results on the Table 10 multi-bin grid.
-% Each row uses instance 01 from the local t10_n*_b* instance group.
-% The repository does not include Deplano et al.'s original instance catalogue,
-% so these are results on generated substitute instances, not a reproduction
-% of the paper's exact numerical results.
-% Entries are objective (number of bins used); lower objective is better.
-% All MILP solves reached the 3600 s time limit, so their incumbents are not
-% guaranteed optimal. The reported V0 MILP and BS packings passed the verifier.
+% Combined V0/V1/V2 results on the Table 10 multi-bin grid.
+% V0 entries are for generated instance 01; V1 and V2 entries are means over
+% five generated instances. These are substitute instances, not the original
+% Deplano et al. instance catalogue.
+% Each solver cell is objective (number of bins used); lower objective is better.
 
 \providecommand{\up}{\rule{0pt}{2.6ex}}
 \providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
 
 \begin{table}[htbp]
 \centering
-\caption{Submodel V0 (stability only) on the multiple-bin Table 10 grid of
-Deplano et al. (2019). Each row reports the result on generated instance 01
-for that item/bin configuration; the original paper instances are not
-available in this repository. Entries are objective~(number of used bins),
-with lower objective better. MILP runs reached the 3600\,s time limit; their
-incumbents are not guaranteed optimal. The returned packings passed the V0
-feasibility verifier.}
-\label{tab:results-table10-v0}
-\begin{tabular}{@{}rr@{\quad}rr@{}}
+\caption{MILP and beam-search (BS) objective values for submodels V0
+(stability only), V1 (+ centre of mass) and V2 (+ load bearing) on the
+multiple-bin Table 10 grid of Deplano et al. (2019). Entries are objective
+(used bins), with lower objective better. V0 reports generated instance 01;
+V1 and V2 report means over five generated instances per configuration. The
+original paper instances are not available in this repository. All V0 MILP
+runs reached the 3600\,s limit, and their returned packings passed the V0
+verifier. All V1/V2 MILP runs reached the 3600\,s limit and their incumbents
+failed independent verification; all BS results passed their corresponding
+submodel verifier.}
+\label{tab:results-table10-combined}
+\begin{tabular}{@{}rr@{\quad}rrrrrr@{}}
 \hline
-\multicolumn{2}{@{}c}{\up Instance} & \multicolumn{1}{c}{MILP} &
-\multicolumn{1}{c}{BS} \\
-items & bins & objective (used bins) & objective (used bins) \\
+\multicolumn{2}{@{}c}{\up Instance}
+& \multicolumn{2}{c}{V0}
+& \multicolumn{2}{c}{V1}
+& \multicolumn{2}{c}{V2} \\
+items & bins
+& MILP obj (used bins) & BS obj (used bins)
+& MILP obj (used bins) & BS obj (used bins)
+& MILP obj (used bins) & BS obj (used bins) \\
 \hline\up
-70  & 2 & 0.3207(2) & \textbf{0.1594(2)} \\
-100 & 2 & 0.3444(2) & \textbf{0.1240(2)} \\
-130 & 2 & 0.3797(2) & \textbf{0.1006(2)} \\
-160 & 2 & 0.3206(2) & \textbf{0.0699(2)} \\
-200 & 2 & 0.5492(2) & \textbf{0.0708(2)} \\
-70  & 3 & 0.6117(3) & \textbf{0.3455(3)} \\
-100 & 3 & 0.5105(3) & \textbf{0.2619(3)} \\
-130 & 3 & 0.7484(3) & \textbf{0.1730(3)} \\
-160 & 3 & 0.6855(3) & \textbf{0.1206(3)} \\
-200 & 3 & 1.0417(3) & \textbf{0.1091(3)} \\
-70  & 5 & 1.1534(5) & \textbf{0.5995(5)} \\
-100 & 5 & 1.1300(5) & \textbf{0.4381(5)} \\
-130 & 5 & 1.1705(5) & \textbf{0.5108(5)} \\
-160 & 5 & 1.4303(5) & \textbf{0.5098(5)} \\
-200 & 5 & 1.8224(5) & \textbf{0.3482(5)} \\
+70  & 2 & 0.3207(2) & \textbf{0.1594(2)} & 0.2838(2) & \textbf{0.1664(2)} & 0.7521(2) & \textbf{0.1561(2)} \\
+100 & 2 & 0.3444(2) & \textbf{0.1240(2)} & 0.3376(2) & \textbf{0.1208(2)} & 0.7099(2) & \textbf{0.1247(2)} \\
+130 & 2 & 0.3797(2) & \textbf{0.1006(2)} & 0.3684(2) & \textbf{0.1102(2)} & 0.7561(2) & \textbf{0.1182(2)} \\
+160 & 2 & 0.3206(2) & \textbf{0.0699(2)} & 0.3674(2) & \textbf{0.0993(2)} & 0.7939(2) & \textbf{0.0986(2)} \\
+200 & 2 & 0.5492(2) & \textbf{0.0708(2)} & 0.4854(2) & \textbf{0.0932(2)} & 0.8659(2) & \textbf{0.1031(2)} \\
+70  & 3 & 0.6117(3) & \textbf{0.3455(3)} & 0.6132(3) & \textbf{0.3251(3)} & 1.1372(3) & \textbf{0.3364(3)} \\
+100 & 3 & 0.5105(3) & \textbf{0.2619(3)} & 0.6205(3) & \textbf{0.2523(3)} & 1.1624(3) & \textbf{0.2753(3)} \\
+130 & 3 & 0.7484(3) & \textbf{0.1730(3)} & 0.6904(3) & \textbf{0.2274(3)} & 1.2485(3) & \textbf{0.2706(3)} \\
+160 & 3 & 0.6855(3) & \textbf{0.1206(3)} & 0.6058(3) & \textbf{0.3041(3)} & 1.2414(3) & \textbf{0.3258(3)} \\
+200 & 3 & 1.0417(3) & \textbf{0.1091(3)} & 0.9506(3) & \textbf{0.2878(3)} & 1.4170(3) & \textbf{0.2935(3)} \\
+70  & 5 & 1.1534(5) & \textbf{0.5995(5)} & 1.3939(5) & \textbf{0.9004(5)} & 1.5980(5) & \textbf{0.8915(5)} \\
+100 & 5 & 1.1300(5) & \textbf{0.4381(5)} & 1.3439(5) & \textbf{0.7940(5)} & 1.6719(5) & \textbf{0.7973(5)} \\
+130 & 5 & 1.1705(5) & \textbf{0.5108(5)} & 1.4428(5) & \textbf{0.6225(5)} & 1.8517(5) & \textbf{0.6923(5)} \\
+160 & 5 & 1.4303(5) & \textbf{0.5098(5)} & 1.6249(5) & \textbf{0.6441(5)} & 1.8750(5) & \textbf{0.6849(5)} \\
+200 & 5 & 1.8224(5) & \textbf{0.3482(5)} & 1.8350(5) & \textbf{0.6889(5)} & 1.9355(5) & \textbf{0.7914(5)} \\
 \hline
+\multicolumn{8}{@{}p{0.97\textwidth}@{}}{\footnotesize
+The V0 column is based on generated instance 01 per configuration, whereas
+V1 and V2 entries average five generated instances; use caution when
+comparing across submodels. The paper's original instance catalogue is not
+available in this repository. V0 MILP incumbents and all BS solutions passed
+their independent checks. V1 and V2 MILP incumbents failed independent
+feasibility verification on all 75 runs per submodel despite reaching the
+3600\,s limit; their objective values are shown as returned.} \\
 \end{tabular}
 \end{table}

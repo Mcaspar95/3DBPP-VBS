@@ -1,0 +1,23 @@
+% V1 results on the Table 10 multi-bin grid.
+% Each entry is the mean over five generated instances per configuration.
+% These are substitute instances, not Deplano et al.'s original catalogue.
+% Entries are objective (mean number of bins used); lower objective is better.
+% All V1 MILP runs reached the 3600 s limit and all returned incumbents fail
+% independent V1 verification. BS is feasible on all 75 runs.
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodel V1 (stability and centre-of-mass constraints) on the
+multiple-bin Table 10 grid of Deplano et al. (2019). Entries are means over
+five generated instances for each item/bin configuration; the original paper
+instances are not available in this repository. Each result is objective
+(used bins), with lower objective better. All MILP runs reached the 3600\,s
+time limit and their incumbents failed independent V1 feasibility
+verification; all BS results were feasible.}
+\label{tab:results-table10-v1}
+\input{table_results_table10_v0}
+\end{table}
+

@@ -1,0 +1,45 @@
+% V2 results on the Table 10 multi-bin grid.
+% Each entry is the mean over five generated instances per configuration.
+% These are substitute instances, not Deplano et al.'s original catalogue.
+% Entries are objective (mean number of bins used); lower objective is better.
+% All V2 MILP runs reached the 3600 s limit and all returned incumbents fail
+% independent V2 verification. BS is feasible on all 75 runs.
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+\providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
+
+\begin{table}[htbp]
+\centering
+\caption{Submodel V2 (stability, centre-of-mass and load-bearing
+constraints) on the multiple-bin Table 10 grid of Deplano et al. (2019).
+Entries are means over five generated instances for each item/bin
+configuration; the original paper instances are not available in this
+repository. Each result is objective (used bins), with lower objective
+better. All MILP runs reached the 3600\,s time limit and their incumbents
+failed independent V2 feasibility verification; all BS results were
+feasible.}
+\label{tab:results-table10-v2}
+\begin{tabular}{@{}rr@{\quad}rr@{}}
+\hline
+\multicolumn{2}{@{}c}{\up Instance} & \multicolumn{1}{c}{MILP} &
+\multicolumn{1}{c}{BS} \\
+items & bins & objective (used bins) & objective (used bins) \\
+\hline\up
+70  & 2 & 0.7521(2) & \textbf{0.1561(2)} \\
+100 & 2 & 0.7099(2) & \textbf{0.1247(2)} \\
+130 & 2 & 0.7561(2) & \textbf{0.1182(2)} \\
+160 & 2 & 0.7939(2) & \textbf{0.0986(2)} \\
+200 & 2 & 0.8659(2) & \textbf{0.1031(2)} \\
+70  & 3 & 1.1372(3) & \textbf{0.3364(3)} \\
+100 & 3 & 1.1624(3) & \textbf{0.2753(3)} \\
+130 & 3 & 1.2485(3) & \textbf{0.2706(3)} \\
+160 & 3 & 1.2414(3) & \textbf{0.3258(3)} \\
+200 & 3 & 1.4170(3) & \textbf{0.2935(3)} \\
+70  & 5 & 1.5980(5) & \textbf{0.8915(5)} \\
+100 & 5 & 1.6719(5) & \textbf{0.7973(5)} \\
+130 & 5 & 1.8517(5) & \textbf{0.6923(5)} \\
+160 & 5 & 1.8750(5) & \textbf{0.6849(5)} \\
+200 & 5 & 1.9355(5) & \textbf{0.7914(5)} \\
+\hline
+\end{tabular}
+\end{table}
