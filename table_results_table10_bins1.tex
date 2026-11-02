@@ -1,0 +1,42 @@
+% Single-bin subset of the Table 10 item-count grid, sourced from Table 8.
+% Each configuration is a mean over ten generated instances; the final row
+% averages the five item-count means, giving equal weight to each size.
+% These are substitute instances, not the original Deplano et al. catalogue.
+
+\providecommand{\up}{\rule{0pt}{2.6ex}}
+
+\begin{table}[htbp]
+\centering
+\scriptsize
+\caption{Single-bin results for the five item counts in the Table 10 grid,
+using Table 8 reports. Entries are objective (number of bins used); lower
+objective is better. Each item-count result averages ten generated instances.
+The final row is the arithmetic mean across the five item counts.}
+\label{tab:results-table10-bins1}
+\begin{tabular}{@{}r@{\quad}rrrrrr@{}}
+\hline
+\multicolumn{1}{@{}c}{\up Items}
+& \multicolumn{2}{c}{V0}
+& \multicolumn{2}{c}{V1}
+& \multicolumn{2}{c}{V2} \\
+items
+& MILP obj (used bins) & BS obj (used bins)
+& MILP obj (used bins) & BS obj (used bins)
+& MILP obj (used bins) & BS obj (used bins) \\
+\hline\up
+70  & 0.0956(1) & \textbf{0.0508(1)} & 0.1013(1) & \textbf{0.0584(1)} & 0.3432$^{\dagger}$(1) & \textbf{0.0591(1)} \\
+100 & 0.1129(1) & \textbf{0.0345(1)} & 0.1041(1) & \textbf{0.0475(1)} & 0.3341$^{\dagger}$(1) & \textbf{0.0477(1)} \\
+130 & 0.1349(1) & \textbf{0.0292(1)} & 0.1062(1) & \textbf{0.0389(1)} & 0.3370$^{\dagger}$(1) & \textbf{0.0387(1)} \\
+160 & 0.1300(1) & \textbf{0.0269(1)} & 0.1251(1) & \textbf{0.0334(1)} & 0.3466$^{\dagger}$(1) & \textbf{0.0339(1)} \\
+200 & 0.1291(1) & \textbf{0.0251(1)} & 0.1260(1) & \textbf{0.0332(1)} & 0.3510$^{\dagger}$(1) & \textbf{0.0344(1)} \\
+\hline
+Mean & 0.1205(1) & \textbf{0.0333(1)} & 0.1125(1) & \textbf{0.0423(1)} & 0.3424$^{\dagger}$(1) & \textbf{0.0428(1)} \\
+\hline
+\multicolumn{7}{@{}p{0.97\textwidth}@{}}{\footnotesize
+The \textsuperscript{\dagger} V2 MILP means include runs that failed the
+independent V2 feasibility check (4--7 of ten runs per item count); those
+objective values are shown as returned. All V0 and V1 MILP results and all
+BS results passed their corresponding checks. The original paper instances
+are unavailable in this repository.} \\
+\end{tabular}
+\end{table}

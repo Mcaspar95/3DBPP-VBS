@@ -2,8 +2,8 @@
 % WFBF corner values were computed for all ten instances at every size.
 % BS/MILP values are means over all ten uploaded reports per size.
 % Objective (1): lower is better. WFBF uses corner-point mode, not grid mode.
-% The six result columns are WFBF objective and time, BS objective and time,
-% and MILP objective and time.
+% The five result columns are WFBF objective, BS objective and time, and
+% MILP objective and time. WFBF runtime is omitted because it is <0.01 s.
 
 \providecommand{\up}{\rule{0pt}{2.6ex}}
 \providecommand{\down}{\rule[-1.2ex]{0pt}{0pt}}
@@ -14,53 +14,65 @@
 \caption{Submodel V0 on the single-bin size sweep, with ten instances per
 size. Objective~(1), lower is better. MILP was run with a 3600\,s limit
 and beam search (BS) with a 60\,s limit. WFBF uses corner-point mode,
-which is a single deterministic pass and is not time limited. WFBF values
-are means over ten instances per size; its reported runtimes were measured
-locally and are not cluster timings. BS and MILP values are means over
-all ten reports per size in \texttt{results\_table8\_V0}. All MILP runs
-reached the time limit and returned feasible solutions.}
+a single deterministic pass. Its runtime is omitted because all measured
+times were below 0.01\,s; these local measurements are machine-dependent.
+WFBF values are means over ten instances per size; BS and MILP values are
+means over all ten reports per size in \texttt{results\_table8\_V0}. The
+MILP gap is the mean solver-reported relative gap over those ten runs,
+expressed as a percentage. All MILP runs reached the time limit and returned
+feasible solutions.}
 \label{tab:results-table8-v0}
-\begin{tabular}{@{}r@{\quad}rr@{\quad}rr@{\quad}rr@{}}
+\begin{tabular}{@{}r@{\quad}r@{\quad}rr@{\quad}rrr@{}}
 \hline
 \multicolumn{1}{@{}c}{\up $n$}
-& WFBF-corner & WFBF-corner $t$ (s)
+& WFBF-corner
 & BS & BS $t$ (s)
-& MILP & MILP $t$ (s) \\
+& MILP & MILP gap (\%) & MILP $t$ (s) \\
 \hline\up
-18  & 0.2537 & 0.0002 & 0.1174 & 2.21 & 0.1100 & 3600.0 \\
-19  & 0.2342 & 0.0002 & 0.1279 & 2.58 & 0.1079 & 3600.0 \\
-20  & 0.2496 & 0.0002 & 0.1364 & 3.13 & 0.1279 & 3600.0 \\
-21  & 0.2421 & 0.0003 & 0.1072 & 3.47 & 0.0969 & 3600.0 \\
-22  & 0.2053 & 0.0003 & 0.0983 & 3.96 & 0.0919 & 3600.0 \\
-23  & 0.2246 & 0.0003 & 0.0974 & 4.02 & 0.0962 & 3600.0 \\
-24  & 0.2227 & 0.0003 & 0.0969 & 5.08 & 0.1016 & 3600.0 \\
-25  & 0.1963 & 0.0003 & 0.0884 & 5.03 & 0.0868 & 3600.0 \\
-26  & 0.1958 & 0.0003 & 0.0972 & 6.99 & 0.1080 & 3600.0 \\
-27  & 0.1853 & 0.0004 & 0.0890 & 7.48 & 0.1006 & 3600.0 \\
-28  & 0.2162 & 0.0004 & 0.0905 & 8.61 & 0.1118 & 3600.0 \\
-29  & 0.2451 & 0.0004 & 0.0798 & 7.95 & 0.0943 & 3600.0 \\
-30  & 0.1839 & 0.0004 & 0.0818 & 8.59 & 0.0999 & 3600.0 \\
-35  & 0.1787 & 0.0005 & 0.0679 & 12.29 & 0.1007 & 3600.0 \\
-40  & 0.1817 & 0.0006 & 0.0637 & 15.48 & 0.0866 & 3600.0 \\
-45  & 0.1916 & 0.0006 & 0.0641 & 20.71 & 0.0966 & 3600.0 \\
-50  & 0.1387 & 0.0007 & 0.0546 & 20.63 & 0.0854 & 3600.0 \\
-55  & 0.1359 & 0.0008 & 0.0495 & 22.70 & 0.1047 & 3600.0 \\
-60  & 0.1432 & 0.0009 & 0.0418 & 27.22 & 0.1113 & 3600.0 \\
-65  & 0.1425 & 0.0010 & 0.0441 & 22.37 & 0.0905 & 3600.0 \\
-70  & 0.1642 & 0.0011 & 0.0508 & 30.22 & 0.0956 & 3600.1 \\
-80  & 0.1390 & 0.0013 & 0.0395 & 35.36 & 0.1098 & 3600.0 \\
-90  & 0.1299 & 0.0015 & 0.0338 & 34.18 & 0.0978 & 3600.0 \\
-100 & 0.1538 & 0.0015 & 0.0345 & 35.68 & 0.1129 & 3600.1 \\
-110 & 0.1518 & 0.0017 & 0.0309 & 40.50 & 0.1145 & 3600.1 \\
-120 & 0.1482 & 0.0019 & 0.0306 & 42.13 & 0.1037 & 3600.1 \\
-130 & 0.1357 & 0.0021 & 0.0292 & 42.10 & 0.1349 & 3600.1 \\
-140 & 0.1517 & 0.0021 & 0.0310 & 45.96 & 0.1154 & 3600.2 \\
-150 & 0.1031 & 0.0021 & 0.0287 & 47.32 & 0.1344 & 3600.2 \\
-160 & 0.1113 & 0.0023 & 0.0269 & 56.59 & 0.1300 & 3600.1 \\
-170 & 0.1082 & 0.0021 & 0.0252 & 50.89 & 0.1231 & 3600.2 \\
-180 & 0.0950 & 0.0020 & 0.0248 & 52.02 & 0.1330 & 3600.2 \\
-190 & 0.0881 & 0.0020 & 0.0256 & 56.11 & 0.1616 & 3600.2 \\
-200 & 0.1312 & 0.0021 & 0.0251 & 58.22 & 0.1291 & 3600.2 \\
+18  & 0.2537 & 0.1174 & 2.21 & 0.1100 & 95.91 & 3600 \\
+19  & 0.2342 & 0.1279 & 2.58 & 0.1079 & 92.81 & 3600 \\
+20  & 0.2496 & 0.1364 & 3.13 & 0.1279 & 90.47 & 3600 \\
+21  & 0.2421 & 0.1072 & 3.47 & 0.0969 & 100.00 & 3600 \\
+22  & 0.2053 & 0.0983 & 3.96 & 0.0919 & 100.00 & 3600 \\
+23  & 0.2246 & 0.0974 & 4.02 & 0.0962 & 100.00 & 3600 \\
+24  & 0.2227 & 0.0969 & 5.08 & 0.1016 & 100.00 & 3600 \\
+25  & 0.1963 & 0.0884 & 5.03 & 0.0868 & 100.00 & 3600 \\
+26  & 0.1958 & 0.0972 & 6.99 & 0.1080 & 100.00 & 3600 \\
+27  & 0.1853 & 0.0890 & 7.48 & 0.1006 & 100.00 & 3600 \\
+28  & 0.2162 & 0.0905 & 8.61 & 0.1118 & 100.00 & 3600 \\
+29  & 0.2451 & 0.0798 & 7.95 & 0.0943 & 100.00 & 3600 \\
+30  & 0.1839 & 0.0818 & 8.59 & 0.0999 & 100.00 & 3600 \\
+35  & 0.1787 & 0.0679 & 12.29 & 0.1007 & 100.00 & 3600 \\
+40  & 0.1817 & 0.0637 & 15.48 & 0.0866 & 100.00 & 3600 \\
+45  & 0.1916 & 0.0641 & 20.71 & 0.0966 & 100.00 & 3600 \\
+50  & 0.1387 & 0.0546 & 20.63 & 0.0854 & 100.00 & 3600 \\
+55  & 0.1359 & 0.0495 & 22.70 & 0.1047 & 100.00 & 3600 \\
+60  & 0.1432 & 0.0418 & 27.22 & 0.1113 & 100.00 & 3600 \\
+65  & 0.1425 & 0.0441 & 22.37 & 0.0905 & 100.00 & 3600 \\
+70  & 0.1642 & 0.0508 & 30.22 & 0.0956 & 100.00 & 3600 \\
+80  & 0.1390 & 0.0395 & 35.36 & 0.1098 & 100.00 & 3600 \\
+90  & 0.1299 & 0.0338 & 34.18 & 0.0978 & 100.00 & 3600 \\
+100 & 0.1538 & 0.0345 & 35.68 & 0.1129 & 100.00 & 3600 \\
+110 & 0.1518 & 0.0309 & 40.50 & 0.1145 & 100.00 & 3600 \\
+120 & 0.1482 & 0.0306 & 42.13 & 0.1037 & 100.00 & 3600 \\
+130 & 0.1357 & 0.0292 & 42.10 & 0.1349 & 100.00 & 3600 \\
+140 & 0.1517 & 0.0310 & 45.96 & 0.1154 & 100.00 & 3600 \\
+150 & 0.1031 & 0.0287 & 47.32 & 0.1344 & 100.00 & 3600 \\
+160 & 0.1113 & 0.0269 & 56.59 & 0.1300 & 100.00 & 3600 \\
+170 & 0.1082 & 0.0252 & 50.89 & 0.1231 & 100.00 & 3600 \\
+180 & 0.0950 & 0.0248 & 52.02 & 0.1330 & 100.00 & 3600 \\
+190 & 0.0881 & 0.0256 & 56.11 & 0.1616 & 100.00 & 3600 \\
+200 & 0.1312 & 0.0251 & 58.22 & 0.1291 & 100.00 & 3600 \\
+\hline
+Average & 0.1700 & 0.0627 & 24.64 & 0.1090 & 99.39 & 3600 \\
 \hline
 \end{tabular}
 \end{table}
+
+WFBF's corner-point procedure completes in less than 0.01\,s for every
+tested instance, so reporting its runtime alongside the seconds-scale BS
+and hour-scale MILP runtimes would add little useful distinction. We
+therefore omit WFBF runtime from the table and compare its objective values;
+the observed runtimes are local measurements and may vary by hardware. The
+final row reports unweighted arithmetic means across the 34 listed item
+counts.

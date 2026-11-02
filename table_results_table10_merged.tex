@@ -1,7 +1,7 @@
 % Combined V0/V1/V2 results on the Table 10 multi-bin grid.
-% V0 entries are for generated instance 01; V1 and V2 entries are means over
-% five generated instances. These are substitute instances, not the original
-% Deplano et al. instance catalogue.
+% Bins=1 entries are Table 8 means over ten generated instances per size.
+% For bins=2,3,5, V0 is instance 01 and V1/V2 average five instances.
+% All are substitutes, not the original Deplano et al. instance catalogue.
 % Each solver cell is objective (number of bins used); lower objective is better.
 
 \providecommand{\up}{\rule{0pt}{2.6ex}}
@@ -13,13 +13,13 @@
 \caption{MILP and beam-search (BS) objective values for submodels V0
 (stability only), V1 (+ centre of mass) and V2 (+ load bearing) on the
 multiple-bin Table 10 grid of Deplano et al. (2019). Entries are objective
-(used bins), with lower objective better. V0 reports generated instance 01;
-V1 and V2 report means over five generated instances per configuration. The
-original paper instances are not available in this repository. All V0 MILP
-runs reached the 3600\,s limit, and their returned packings passed the V0
-verifier. All V1/V2 MILP runs reached the 3600\,s limit and their incumbents
-failed independent verification; all BS results passed their corresponding
-submodel verifier.}
+(used bins), with lower objective better. For bins=1, entries are means over
+ten Table 8 instances per item count. For bins=2,3,5, V0 uses generated
+instance 01 while V1/V2 report means over five instances per configuration.
+The original paper instances are unavailable. All V0 MILP and BS results
+passed their corresponding verifier. V1/V2 multi-bin MILP incumbents failed
+independent verification; the bins=1 V2 MILP means marked \textsuperscript{\dagger}
+include some failed incumbents.}
 \label{tab:results-table10-v0v1v2}
 \begin{tabular}{@{}rr@{\quad}rrrrrr@{}}
 \hline
@@ -32,6 +32,12 @@ items & bins
 & MILP obj (used bins) & BS obj (used bins)
 & MILP obj (used bins) & BS obj (used bins) \\
 \hline\up
+70  & 1 & 0.0956(1) & \textbf{0.0508(1)} & 0.1013(1) & \textbf{0.0584(1)} & 0.3432(1)$^\dagger$ & \textbf{0.0591(1)} \\
+100 & 1 & 0.1129(1) & \textbf{0.0345(1)} & 0.1041(1) & \textbf{0.0475(1)} & 0.3341(1)$^\dagger$ & \textbf{0.0477(1)} \\
+130 & 1 & 0.1349(1) & \textbf{0.0292(1)} & 0.1062(1) & \textbf{0.0389(1)} & 0.3370(1)$^\dagger$ & \textbf{0.0387(1)} \\
+160 & 1 & 0.1300(1) & \textbf{0.0269(1)} & 0.1251(1) & \textbf{0.0334(1)} & 0.3466(1)$^\dagger$ & \textbf{0.0339(1)} \\
+200 & 1 & 0.1291(1) & \textbf{0.0251(1)} & 0.1260(1) & \textbf{0.0332(1)} & 0.3510(1)$^\dagger$ & \textbf{0.0344(1)} \\
+\hline
 70  & 2 & 0.2950(2) & \textbf{0.1323(2)} & 0.2838(2) & \textbf{0.1664(2)} & 0.7521(2) & \textbf{0.1561(2)} \\
 100 & 2 & 0.3298(2) & \textbf{0.1019(2)} & 0.3376(2) & \textbf{0.1208(2)} & 0.7099(2) & \textbf{0.1247(2)} \\
 130 & 2 & 0.3492(2) & \textbf{0.0812(2)} & 0.3684(2) & \textbf{0.1102(2)} & 0.7561(2) & \textbf{0.1182(2)} \\
@@ -48,17 +54,15 @@ items & bins
 160 & 5 & 1.3257(5) & \textbf{0.3855(5)} & 1.6249(5) & \textbf{0.6441(5)} & 1.8750(5) & \textbf{0.6849(5)} \\
 200 & 5 & 1.7394(5) & \textbf{0.3365(5)} & 1.8350(5) & \textbf{0.6889(5)} & 1.9355(5) & \textbf{0.7914(5)} \\
 \hline
-Mean &  & 0.8120(3.33) & \textbf{0.2584(3.33)} & 0.8642(3.33) & \textbf{0.3758(3.33)} & 1.2678(3.33) & \textbf{0.3973(3.33)} \\
+Mean &  & 0.6392(2.75) & \textbf{0.2021(2.75)} & 0.6763(2.75) & \textbf{0.2924(2.75)} & 1.0364(2.75) & \textbf{0.3087(2.75)} \\
 \hline
 \multicolumn{8}{@{}p{0.97\textwidth}@{}}{\footnotesize
-The V0 column is based on one generated instance per configuration, whereas
-V1 and V2 entries average five generated instances; use caution when
-comparing across submodels. The paper's original instance catalogue is not
-available in this repository. V0 MILP incumbents and all BS solutions passed
-their independent checks. V1 and V2 MILP incumbents failed independent
-feasibility verification on all 75 runs per submodel despite reaching the
-3600\,s limit; their objective values are shown as returned. The final row
-gives arithmetic means across the 15 configurations; parentheses give the
-mean number of bins used.} \\
+The bins=1 rows average ten Table 8 instances; the bins=2,3,5 rows use one V0
+instance and five V1/V2 instances per configuration, so cross-row comparisons
+are descriptive. The \textsuperscript{\dagger} V2 bins=1 MILP means include
+verifier failures (4--7 of ten runs, depending on item count). V1/V2 multi-bin
+MILP incumbents failed independent feasibility checks; their objectives are
+shown as returned. The final row is the unweighted arithmetic mean over all
+20 item/bin configurations; parentheses give mean bins used.} \\
 \end{tabular}
 \end{table}
